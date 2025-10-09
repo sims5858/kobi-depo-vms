@@ -18,7 +18,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Veritabanı bağlantısı
-const db = new sqlite3.Database('./vms_database.sqlite', (err) => {
+// Render.com için memory database kullan, local için file database
+const dbPath = process.env.NODE_ENV === 'production' ? ':memory:' : './vms_database.sqlite';
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Veritabanı bağlantı hatası:', err.message);
   } else {
@@ -1060,6 +1062,19 @@ app.get('/api/dashboard/activities', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`VMS Server ${PORT} portunda çalışıyor`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Database: ${dbPath}`);
+});
+
+// Error handling
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err);
+  process.exit(1);
 });
 
 // Graceful shutdown
