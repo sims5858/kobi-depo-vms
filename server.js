@@ -9,7 +9,7 @@ const XLSX = require('xlsx');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -174,6 +174,15 @@ function initializeDatabase() {
 }
 
 // API Routes
+
+// Health check endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'VMS API çalışıyor!', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Ana sayfa
 app.get('/', (req, res) => {
