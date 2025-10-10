@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Table, Alert, Badge } from 'react-bootstrap';
-import { BiPackage, BiCamera, BiBox, BiTrash } from 'react-icons/bi';
+import { BiPackage, BiTrash } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 
 const UrunToplama = () => {
@@ -11,9 +11,9 @@ const UrunToplama = () => {
   const [activeKoli, setActiveKoli] = useState(null);
   const [koliUrunleri, setKoliUrunleri] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [toplamaFisleri, setToplamaFisleri] = useState([]);
-  const [selectedFisi, setSelectedFisi] = useState(null);
-  const [fisiDetaylari, setFisiDetaylari] = useState([]);
+  const [toplamaFisleri] = useState([]);
+  const [selectedFisi] = useState(null);
+  const [fisiDetaylari] = useState([]);
   const [cikisGecmisi, setCikisGecmisi] = useState([]);
   const [seciliKoliGecmisi, setSeciliKoliGecmisi] = useState(null);
   
@@ -239,7 +239,7 @@ const UrunToplama = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [currentInput, loading]);
+  }, [currentInput, loading, handleInput]);
 
   const handleUrunSil = (index) => {
     setToplamaListesi(toplamaListesi.filter((_, i) => i !== index));

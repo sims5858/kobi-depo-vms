@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Table, Badge, Button, ProgressBar } from 'react-bootstrap';
+import { Card, Row, Col, Badge, Button } from 'react-bootstrap';
 import { 
   BiBox, 
   BiPackage, 
@@ -38,7 +38,7 @@ const Dashboard = () => {
       
       // Ürün listesini yükle
       const urunResponse = await fetch('/api/urun');
-      const urunData = await urunResponse.json();
+      await urunResponse.json();
       
       const toplamKoli = koliData.length;
       const doluKoli = koliData.filter(koli => koli.urun_sayisi > 0).length;

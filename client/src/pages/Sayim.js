@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Table, Alert, Badge, Modal } from 'react-bootstrap';
-import { BiClipboard, BiCamera, BiSave, BiTrash, BiBox, BiCheckCircle } from 'react-icons/bi';
+import { BiClipboard, BiCamera, BiSave, BiTrash, BiBox } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 
 const Sayim = () => {
   const [sayimListesi, setSayimListesi] = useState([]);
   const [currentKoliNo, setCurrentKoliNo] = useState('');
-  const [currentBarkod, setCurrentBarkod] = useState('');
+  const [currentBarkod] = useState('');
   const [currentFizikselAdet, setCurrentFizikselAdet] = useState(0);
   const [koliEnvanter, setKoliEnvanter] = useState([]);
   const [showModal, setShowModal] = useState(false);

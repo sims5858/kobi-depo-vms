@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Row, Col, Button, Form, Table, Alert, Badge, Modal } from 'react-bootstrap';
 import { BiTransferAlt, BiCamera, BiSave, BiTrash, BiBox, BiPackage } from 'react-icons/bi';
 import { toast } from 'react-toastify';

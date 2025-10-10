@@ -16,7 +16,7 @@ const Raporlar = () => {
   useEffect(() => {
     loadKoliEnvanterRaporu();
     loadBosKoliRaporu();
-  }, []);
+  }, [loadKoliEnvanterRaporu]);
 
   const loadKoliEnvanterRaporu = async () => {
     setLoading(true);
