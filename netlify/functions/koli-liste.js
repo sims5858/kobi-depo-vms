@@ -1,5 +1,18 @@
 // Netlify Function - Koli listesi
 exports.handler = async (event, context) => {
+  // CORS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
   const koliler = [
     {
       koli_no: 'D2-0099',
