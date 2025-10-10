@@ -1,6 +1,8 @@
 // Vercel API endpoint - Ürün listesi
-export default function handler(req, res) {
-  const urunler = [
+module.exports = (req, res) => {
+  const { q } = req.query;
+  
+  let urunler = [
     {
       barkod: 'BRK123456',
       urun_adi: 'Demo Ürün 1',
@@ -9,7 +11,10 @@ export default function handler(req, res) {
       stok_adet: 50,
       min_stok: 10,
       max_stok: 100,
-      lokasyon: 'D2-0099'
+      lokasyon: 'D2-0099',
+      toplam_adet: 50,
+      beden: 'M',
+      ana_blok: 'A'
     },
     {
       barkod: 'BRK789012',
@@ -19,9 +24,35 @@ export default function handler(req, res) {
       stok_adet: 25,
       min_stok: 5,
       max_stok: 50,
-      lokasyon: 'D2-0014'
+      lokasyon: 'D2-0014',
+      toplam_adet: 25,
+      beden: 'L',
+      ana_blok: 'B'
+    },
+    {
+      barkod: 'BRK345678',
+      urun_adi: 'Demo Ürün 3',
+      kategori: 'Ev & Yaşam',
+      birim_fiyat: 200.00,
+      stok_adet: 15,
+      min_stok: 3,
+      max_stok: 30,
+      lokasyon: 'D2-0025',
+      toplam_adet: 15,
+      beden: 'XL',
+      ana_blok: 'C'
     }
   ];
 
+  // Arama filtresi
+  if (q && q.trim()) {
+    const searchTerm = q.toLowerCase();
+    urunler = urunler.filter(urun => 
+      urun.barkod.toLowerCase().includes(searchTerm) ||
+      urun.urun_adi.toLowerCase().includes(searchTerm) ||
+      urun.kategori.toLowerCase().includes(searchTerm)
+    );
+  }
+
   res.status(200).json(urunler);
-}
+};

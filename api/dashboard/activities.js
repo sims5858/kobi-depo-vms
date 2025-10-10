@@ -1,5 +1,5 @@
 // Vercel API endpoint - Dashboard activities
-export default function handler(req, res) {
+module.exports = (req, res) => {
   const activities = [
     {
       id: 1,
@@ -25,4 +25,4 @@ export default function handler(req, res) {
   ];
 
   res.status(200).json(activities);
-}
+};
