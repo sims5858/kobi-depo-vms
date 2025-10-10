@@ -1545,50 +1545,63 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Endpoint bulunamadı' });
 });
 
-// Server başlatma
-const server = app.listen(PORT, () => {
-  console.log(`VMS Server ${PORT} portunda çalışıyor`, {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Graceful shutdown
-const gracefulShutdown = (signal) => {
-  console.log(`${signal} received. Starting graceful shutdown...`);
-  
-  server.close(() => {
-    console.log('HTTP server closed');
-    
-    db.close((err) => {
-      if (err) {
-        console.error('Veritabanı kapatma hatası', { error: err.message });
-      } else {
-        console.log('Veritabanı bağlantısı kapatıldı');
-      }
-      process.exit(0);
+// Vercel için export
+if (process.env.NODE_ENV === 'production') {
+  module.exports = app;
+} else {
+  // Development için server başlatma
+  const server = app.listen(PORT, () => {
+    console.log(`VMS Server ${PORT} portunda çalışıyor`, {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      timestamp: new Date().toISOString()
     });
   });
-  
-  // Force close after 10 seconds
-  setTimeout(() => {
-    console.error('Could not close connections in time, forcefully shutting down');
-    process.exit(1);
-  }, 10000);
-};
+}
 
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception', { error: err.message, stack: err.stack });
-  gracefulShutdown('uncaughtException');
-});
+// Graceful shutdown (sadece development için)
+if (process.env.NODE_ENV !== 'production') {
+  const gracefulShutdown = (signal) => {
+    console.log(`${signal} received. Starting graceful shutdown...`);
+    
+    if (server) {
+      server.close(() => {
+        console.log('HTTP server closed');
+        
+        db.close((err) => {
+          if (err) {
+            console.error('Veritabanı kapatma hatası', { error: err.message });
+          } else {
+            console.log('Veritabanı bağlantısı kapatıldı');
+          }
+          process.exit(0);
+        });
+      });
+      
+      // Force close after 10 seconds
+      setTimeout(() => {
+        console.error('Could not close connections in time, forcefully shutting down');
+        process.exit(1);
+      }, 10000);
+    }
+  };
+}
 
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection', { error: err.message, stack: err.stack });
-  gracefulShutdown('unhandledRejection');
-});
+// Process event handlers (sadece development için)
+if (process.env.NODE_ENV !== 'production') {
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception', { error: err.message, stack: err.stack });
+    gracefulShutdown('uncaughtException');
+  });
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Rejection', { error: err.message, stack: err.stack });
+    gracefulShutdown('unhandledRejection');
+  });
+}
 
-module.exports = app;
+// Signal handlers (sadece development için)
+if (process.env.NODE_ENV !== 'production') {
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+}
