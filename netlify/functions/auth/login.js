@@ -23,10 +23,14 @@ exports.handler = async (event, context) => {
     };
   }
 
-  const { kullanici_adi, sifre } = JSON.parse(event.body);
+  const { username, password, kullanici_adi, sifre } = JSON.parse(event.body);
+
+  // Frontend'ten gelen field'ları kontrol et
+  const user = username || kullanici_adi;
+  const pass = password || sifre;
 
   // Basit test kullanıcısı
-  if (kullanici_adi === 'admin' && sifre === 'admin123') {
+  if (user === 'admin' && pass === 'admin123') {
     const token = 'demo-token-' + Date.now();
     return {
       statusCode: 200,
@@ -37,7 +41,6 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
       body: JSON.stringify({
-        success: true,
         token: token,
         user: {
           id: 1,
@@ -59,8 +62,7 @@ exports.handler = async (event, context) => {
       'Access-Control-Allow-Origin': '*'
     },
     body: JSON.stringify({ 
-      success: false, 
-      error: 'Geçersiz kullanıcı adı veya şifre' 
+      message: 'Geçersiz kullanıcı adı veya şifre' 
     })
   };
 };
