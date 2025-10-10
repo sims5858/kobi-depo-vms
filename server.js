@@ -267,27 +267,24 @@ function initializeDatabase() {
   db.run(`CREATE INDEX IF NOT EXISTS idx_koli_urun_barkod ON koli_urun (urun_barkod)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_koli_no ON koli (koli_no)`);
 
-  // Kapasite kolonu ekle (eğer yoksa)
-  db.run(`ALTER TABLE koli ADD COLUMN kapasite INTEGER DEFAULT 100`, (err) => {
-    if (err && !err.message.includes('duplicate column name')) {
-      console.error('Kapasite kolonu eklenirken hata:', err);
-    }
-  });
+  // Kapasite kolonu zaten tablo oluşturulurken eklenmiş
 
-  // Admin kullanıcısı oluştur
-  const adminPassword = bcrypt.hashSync('admin123', 10);
-  db.run(`INSERT OR IGNORE INTO kullanici (kullanici_adi, email, sifre, ad_soyad, rol) VALUES (?, ?, ?, ?, ?)`,
-    ['admin', 'admin@vms.com', adminPassword, 'Sistem Yöneticisi', 'admin'],
-    (err) => {
-      if (err) {
-        console.error('Admin kullanıcısı oluşturulurken hata:', err);
-      } else {
-        console.log('Admin kullanıcısı hazır: admin / admin123');
-        // Örnek veri ekle
-        addSampleData();
+  // Admin kullanıcısı oluştur (tablolar oluşturulduktan sonra)
+  setTimeout(() => {
+    const adminPassword = bcrypt.hashSync('admin123', 10);
+    db.run(`INSERT OR IGNORE INTO kullanici (kullanici_adi, email, sifre, ad_soyad, rol) VALUES (?, ?, ?, ?, ?)`,
+      ['admin', 'admin@vms.com', adminPassword, 'Sistem Yöneticisi', 'admin'],
+      (err) => {
+        if (err) {
+          console.error('Admin kullanıcısı oluşturulurken hata:', err);
+        } else {
+          console.log('Admin kullanıcısı hazır: admin / admin123');
+          // Örnek veri ekle
+          addSampleData();
+        }
       }
-    }
-  );
+    );
+  }, 1000); // 1 saniye bekle
 }
 
 // Örnek veri ekleme fonksiyonu
