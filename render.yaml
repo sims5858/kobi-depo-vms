@@ -3,10 +3,12 @@ services:
     name: vms-depo-yonetim
     env: node
     plan: free
-    buildCommand: npm install && cd client && npm install && npm run build
+    buildCommand: npm install && cd client && npm install && CI=false npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: CI
+        value: false
