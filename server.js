@@ -68,6 +68,12 @@ const writeLog = (level, action, details, user = null, req = null) => {
   const ip = req ? req.ip : '127.0.0.1';
   const userAgent = req ? req.get('User-Agent') : 'System';
   
+  // Veritabanı hazır olana kadar bekle
+  if (!db) {
+    console.log('Veritabanı henüz hazır değil, log atlanıyor');
+    return;
+  }
+  
   db.run(
     'INSERT INTO system_logs (level, user, action, details, ip, user_agent) VALUES (?, ?, ?, ?, ?, ?)',
     [level, user, action, details, ip, userAgent],
@@ -108,7 +114,8 @@ const requireAdmin = (req, res, next) => {
 };
 
 // Veritabanı bağlantısı
-const db = new sqlite3.Database('./vms_database.sqlite', (err) => {
+let db;
+db = new sqlite3.Database('./vms_database.sqlite', (err) => {
   if (err) {
     console.error('Veritabanı bağlantı hatası', { error: err.message });
     process.exit(1);
