@@ -22,11 +22,9 @@ const UrunYonetimi = () => {
   const [locateQuery, setLocateQuery] = useState('');
   const [locateResults, setLocateResults] = useState([]);
   const [locating, setLocating] = useState(false);
-  const [showKoliModal, setShowKoliModal] = useState(false);
-  const [koliQuery, setKoliQuery] = useState('');
-  const [koliResults, setKoliResults] = useState([]);
-  const [koliSearching, setKoliSearching] = useState(false);
   const [sortBy, setSortBy] = useState(''); // 'adet_asc', 'adet_desc', 'urun_adi_asc', 'urun_adi_desc'
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const getSortedUrunler = () => {
     let sorted = [...urunListesi];
@@ -52,8 +50,23 @@ const UrunYonetimi = () => {
     return sorted;
   };
 
+  // Pagination logic
+  const getPaginatedUrunler = () => {
+    const sorted = getSortedUrunler();
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sorted.slice(startIndex, endIndex);
+  };
+
+  const totalPages = Math.ceil(urunListesi.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   const handleSortChange = (newSortBy) => {
     setSortBy(newSortBy);
+    setCurrentPage(1); // Sort değiştiğinde ilk sayfaya dön
   };
 
   const runLocate = async () => {
@@ -71,10 +84,12 @@ const UrunYonetimi = () => {
       setLocateResults(Array.isArray(data) ? data : []);
       if (!data || data.length === 0) {
         toast.info('Kayıt bulunamadı');
+      } else {
+        toast.success(`${data.length} kayıt bulundu`);
       }
     } catch (e) {
-      console.error(e);
-      toast.error('Konum sorgusu sırasında hata oluştu');
+      console.error('Hata:', e);
+      toast.error('Konum sorgusu sırasında hata oluştu: ' + e.message);
     } finally {
       setLocating(false);
     }
@@ -87,6 +102,7 @@ const UrunYonetimi = () => {
 
   const loadUrunListesi = async () => {
     setLoading(true);
+    setCurrentPage(1); // Yeni arama yapıldığında ilk sayfaya dön
     try {
       const params = new URLSearchParams();
       if (query && query.trim()) params.set('q', query.trim());
@@ -120,6 +136,7 @@ const UrunYonetimi = () => {
       const res = await fetch(`/api/urun/${barkod}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Silme hatası');
       toast.success('Ürün silindi');
+      setQuery(''); // Arama sorgusunu temizle
       loadUrunListesi();
     } catch (e) {
       console.error(e);
@@ -138,6 +155,7 @@ const UrunYonetimi = () => {
       });
       if (!res.ok) throw new Error('Toplu silme hatası');
       toast.success('Toplu silme tamamlandı');
+      setQuery(''); // Arama sorgusunu temizle
       loadUrunListesi();
     } catch (e) {
       console.error(e);
@@ -145,29 +163,6 @@ const UrunYonetimi = () => {
     }
   };
 
-  const runKoliSearch = async () => {
-    const q = (koliQuery || '').trim();
-    if (!q) {
-      toast.warning('Lütfen barkod girin');
-      return;
-    }
-    try {
-      setKoliSearching(true);
-      setKoliResults([]);
-      const res = await fetch(`/api/urun/koli-sorgu?q=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error('Koli sorgusu başarısız');
-      const data = await res.json();
-      setKoliResults(Array.isArray(data) ? data : []);
-      if (!data || data.length === 0) {
-        toast.info('Bu barkodlu ürün hiçbir kolide bulunamadı');
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error('Koli sorgusu sırasında hata oluştu');
-    } finally {
-      setKoliSearching(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -214,7 +209,29 @@ const UrunYonetimi = () => {
         body: form
       });
       if (!res.ok) throw new Error('Yükleme hatası');
-      toast.success('Excel içe aktarma tamamlandı');
+      
+      const result = await res.json();
+      
+      // Detaylı sonuç mesajı
+      let message = `Excel içe aktarma tamamlandı! `;
+      if (result.yeniUrunler > 0) {
+        message += `${result.yeniUrunler} yeni ürün eklendi. `;
+      }
+      if (result.guncellenenUrunler > 0) {
+        message += `${result.guncellenenUrunler} ürün güncellendi. `;
+      }
+      message += `Toplam ${result.successCount} işlem başarılı.`;
+      
+      toast.success(message, { autoClose: 5000 });
+      
+      // Console'da detaylı bilgi
+      if (result.detay) {
+        console.log('Excel Import Detayları:', {
+          yeniBarkodlar: result.detay.yeniBarkodlar,
+          guncellenenBarkodlar: result.detay.guncellenenBarkodlar
+        });
+      }
+      
       loadUrunListesi();
     } catch (err) {
       console.error(err);
@@ -236,18 +253,6 @@ const UrunYonetimi = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (barkod) => {
-    if (window.confirm(`${barkod} barkodlu ürünü silmek istediğinizden emin misiniz?`)) {
-      try {
-        // Gerçek uygulamada DELETE API endpoint'i olacak
-        toast.success('Ürün silindi');
-        loadUrunListesi();
-      } catch (error) {
-        console.error('Ürün silme hatası:', error);
-        toast.error('Ürün silinirken hata oluştu');
-      }
-    }
-  };
 
   const handleModalClose = () => {
     setShowModal(false);
@@ -263,8 +268,8 @@ const UrunYonetimi = () => {
   };
 
   return (
-    <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="page-transition">
+      <div className="d-flex justify-content-between align-items-center mb-4 anim-fade-in">
         <h1 className="h3 mb-0">Ürün Yönetimi</h1>
         <Button 
           variant="primary" 
@@ -284,13 +289,18 @@ const UrunYonetimi = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center" style={{ gap: '1rem' }}>
               <h5 className="mb-0">Ürün Listesi</h5>
-              <Badge bg="primary" className="fs-6">{urunListesi.length} Ürün</Badge>
+              <Badge bg="primary" className="fs-6">
+                {loading ? 'Yükleniyor...' : `${urunListesi.length} Ürün`}
+              </Badge>
             </div>
             <div className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
               <Form.Control
                 placeholder="Barkod veya ürün adı ile ara..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setCurrentPage(1); // Arama değiştiğinde ilk sayfaya dön
+                }}
                 onKeyDown={(e)=> e.key==='Enter' && loadUrunListesi()}
                 style={{ width: 320 }}
               />
@@ -305,8 +315,7 @@ const UrunYonetimi = () => {
                   Sıfırla
                 </Button>
               )}
-              <Button variant="secondary" onClick={()=> { setShowLocateModal(true); setLocateQuery(query); setLocateResults([]); }}>Konum Sorgula</Button>
-              <Button variant="info" onClick={()=> { setShowKoliModal(true); setKoliQuery(query); setKoliResults([]); }}>Koli Sorgula</Button>
+              <Button variant="secondary" onClick={()=> { setShowLocateModal(true); setLocateQuery(query); setLocateResults([]); }}>Konum & Koli Sorgula</Button>
               <Button variant="outline-danger" disabled={seciliBarkodlar.length===0} onClick={handleDeleteBulk}>
                 Seçili Sil ({seciliBarkodlar.length})
               </Button>
@@ -372,8 +381,8 @@ const UrunYonetimi = () => {
                 </tr>
               </thead>
               <tbody>
-                {getSortedUrunler().length > 0 ? (
-                  getSortedUrunler().map((urun, index) => (
+                {getPaginatedUrunler().length > 0 ? (
+                  getPaginatedUrunler().map((urun, index) => (
                     <tr key={index}>
                       <td>
                         <Form.Check
@@ -425,6 +434,100 @@ const UrunYonetimi = () => {
               </tbody>
             </Table>
           )}
+
+            {/* Pagination */}
+            {urunListesi.length > 0 && (
+              <div className="d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+                <div className="text-muted">
+                  <strong>Toplam {urunListesi.length} ürün</strong> bulundu.
+                  <br />
+                  <Badge bg="info" className="me-2">Sayfa {currentPage} / {totalPages}</Badge>
+                  <span className="small">({(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, urunListesi.length)} arası gösteriliyor)</span>
+                </div>
+                <div className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(1)}
+                  >
+                    ⏮ İlk
+                  </Button>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                  >
+                    ◀ Önceki
+                  </Button>
+                  
+                  <div className="btn-group">
+                    {totalPages <= 10 ? (
+                      // 10 veya daha az sayfa varsa hepsini göster
+                      [...Array(totalPages)].map((_, i) => {
+                        const pageNumber = i + 1;
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? 'primary' : 'outline-primary'}
+                            size="sm"
+                            onClick={() => handlePageChange(pageNumber)}
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })
+                    ) : (
+                      // 10'dan fazla sayfa varsa akıllı göster
+                      [...Array(totalPages)].map((_, i) => {
+                        const pageNumber = i + 1;
+                        // İlk 2, son 2 ve mevcut sayfa etrafındaki 2 sayfayı göster
+                        if (
+                          pageNumber <= 2 ||
+                          pageNumber > totalPages - 2 ||
+                          (pageNumber >= currentPage - 2 && pageNumber <= currentPage + 2)
+                        ) {
+                          return (
+                            <Button
+                              key={pageNumber}
+                              variant={currentPage === pageNumber ? 'primary' : 'outline-primary'}
+                              size="sm"
+                              onClick={() => handlePageChange(pageNumber)}
+                            >
+                              {pageNumber}
+                            </Button>
+                          );
+                        } else if (
+                          pageNumber === currentPage - 3 ||
+                          pageNumber === currentPage + 3
+                        ) {
+                          return <Button key={pageNumber} variant="outline-secondary" size="sm" disabled>...</Button>;
+                        }
+                        return null;
+                      })
+                    )}
+                  </div>
+
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                  >
+                    Sonraki ▶
+                  </Button>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(totalPages)}
+                  >
+                    Son ⏭
+                  </Button>
+                </div>
+              </div>
+            )}
         </Card.Body>
       </Card>
 
@@ -580,7 +683,7 @@ const UrunYonetimi = () => {
     {/* Konum Sorgu Modal */}
     <Modal show={showLocateModal} onHide={()=> setShowLocateModal(false)} size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>Ürün Konum Sorgu</Modal.Title>
+        <Modal.Title>Ürün Konum & Koli Sorgu</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="d-flex mb-3" style={{ gap: '0.5rem' }}>
@@ -613,7 +716,21 @@ const UrunYonetimi = () => {
                   <td>{r.urun_adi}</td>
                   <td>{r.beden || '-'}</td>
                   <td>{r.ana_blok || '-'}</td>
-                  <td><Badge bg="info">{r.koli_no || '-'}</Badge></td>
+                  <td>
+                    {r.koli_no ? (
+                      <Badge 
+                        bg="info" 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(r.koli_no);
+                          toast.success(`Koli numarası kopyalandı: ${r.koli_no}`);
+                        }}
+                        title="Koli numarasını kopyalamak için tıklayın"
+                      >
+                        {r.koli_no}
+                      </Badge>
+                    ) : '-'}
+                  </td>
                   <td>{r.lokasyon || '-'}</td>
                   <td><Badge bg={Number(r.adet)>0 ? 'success' : 'secondary'}>{Number(r.adet)||0}</Badge></td>
                 </tr>
@@ -629,83 +746,6 @@ const UrunYonetimi = () => {
       </Modal.Footer>
     </Modal>
 
-    {/* Koli Sorgu Modal */}
-    <Modal show={showKoliModal} onHide={()=> setShowKoliModal(false)} size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>Koli Sorgu - Hangi Kolide?</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div className="d-flex mb-3" style={{ gap: '0.5rem' }}>
-          <Form.Control
-            placeholder="Barkod okutun..."
-            value={koliQuery}
-            onChange={(e)=> setKoliQuery(e.target.value)}
-            onKeyDown={async (e)=> { if (e.key==='Enter') { e.preventDefault(); runKoliSearch(); } }}
-          />
-          <Button onClick={runKoliSearch} disabled={koliSearching}>{koliSearching ? 'Sorgulanıyor...' : 'Sorgula'}</Button>
-        </div>
-
-        {koliResults.length>0 ? (
-          <div>
-            <Alert variant="success" className="mb-3">
-              <strong>{koliResults[0].barkod}</strong> barkodlu <strong>{koliResults[0].urun_adi}</strong> 
-              {koliResults[0].beden && ` (${koliResults[0].beden} beden)`} şu kolilerde bulunuyor:
-            </Alert>
-            <Table responsive>
-              <thead>
-                <tr>
-                  <th>Koli No</th>
-                  <th>Lokasyon</th>
-                  <th>Adet</th>
-                </tr>
-              </thead>
-              <tbody>
-                {koliResults.map((r, idx)=> (
-                  <tr key={idx}>
-                    <td>
-                      <button 
-                        className="btn btn-outline-primary btn-sm"
-                        style={{
-                          border: '2px solid #0d6efd',
-                          borderRadius: '8px',
-                          padding: '8px 16px',
-                          fontWeight: '600',
-                          transition: 'all 0.3s ease',
-                          cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#0d6efd';
-                          e.target.style.color = 'white';
-                          e.target.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                          e.target.style.color = '#0d6efd';
-                          e.target.style.transform = 'scale(1)';
-                        }}
-                        onClick={() => {
-                          navigator.clipboard.writeText(r.koli_no);
-                          toast.success(`Koli numarası kopyalandı: ${r.koli_no}`);
-                        }}
-                      >
-                        {r.koli_no}
-                      </button>
-                    </td>
-                    <td>{r.lokasyon || '-'}</td>
-                    <td><Badge bg="success">{Number(r.adet)||0}</Badge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-        ) : (
-          <Alert variant="light">Barkod okutup sorgulayın.</Alert>
-        )}
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={()=> setShowKoliModal(false)}>Kapat</Button>
-      </Modal.Footer>
-    </Modal>
     </div>
   );
 };

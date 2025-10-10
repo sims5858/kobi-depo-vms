@@ -134,7 +134,7 @@ const Sayim = () => {
   const negatifFark = sayimListesi.filter(item => item.fark < 0).length;
 
   return (
-    <div className="fade-in">
+    <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 mb-0">Sayım İşlemi</h1>
         <Badge bg="primary" className="fs-6">

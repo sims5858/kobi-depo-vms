@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Table, Alert, Badge, Modal } from 'react-bootstrap';
-import { BiBox, BiPlus, BiEdit, BiTrash, BiSave, BiX } from 'react-icons/bi';
+import { BiBox, BiPlus, BiEdit, BiTrash, BiSave, BiX, BiCheckSquare, BiSquare, BiSearch } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 
 const KoliYonetimi = () => {
@@ -16,6 +16,10 @@ const KoliYonetimi = () => {
     durum: 'aktif'
   });
   const [loading, setLoading] = useState(false);
+  const [selectedKoliler, setSelectedKoliler] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadKoliListesi();
@@ -92,12 +96,62 @@ const KoliYonetimi = () => {
   const handleDelete = async (koliNo) => {
     if (window.confirm(`${koliNo} numaralı koliyi silmek istediğinizden emin misiniz?`)) {
       try {
-        // Gerçek uygulamada DELETE API endpoint'i olacak
+        const response = await fetch(`/api/koli/${koliNo}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Silme hatası');
         toast.success('Koli silindi');
         loadKoliListesi();
       } catch (error) {
         console.error('Koli silme hatası:', error);
         toast.error('Koli silinirken hata oluştu');
+      }
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedKoliler([]);
+      setSelectAll(false);
+    } else {
+      setSelectedKoliler(koliListesi.map(koli => koli.koli_no));
+      setSelectAll(true);
+    }
+  };
+
+  const handleSelectKoli = (koliNo) => {
+    if (selectedKoliler.includes(koliNo)) {
+      setSelectedKoliler(selectedKoliler.filter(no => no !== koliNo));
+    } else {
+      setSelectedKoliler([...selectedKoliler, koliNo]);
+    }
+  };
+
+  const handleDeleteBulk = async () => {
+    if (selectedKoliler.length === 0) {
+      toast.warning('Silinecek koli seçiniz');
+      return;
+    }
+
+    if (window.confirm(`${selectedKoliler.length} adet koliyi silmek istediğinizden emin misiniz?`)) {
+      try {
+        const response = await fetch('/api/koli/delete-bulk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ koli_nolar: selectedKoliler }),
+        });
+
+        if (response.ok) {
+          toast.success(`${selectedKoliler.length} koli başarıyla silindi`);
+          setSelectedKoliler([]);
+          setSelectAll(false);
+          loadKoliListesi();
+        } else {
+          throw new Error('Toplu silme hatası');
+        }
+      } catch (error) {
+        console.error('Toplu koli silme hatası:', error);
+        toast.error('Koliler silinirken hata oluştu');
       }
     }
   };
@@ -120,16 +174,36 @@ const KoliYonetimi = () => {
   };
 
   return (
-    <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="page-transition">
+      <div className="d-flex justify-content-between align-items-center mb-4 anim-fade-in">
         <h1 className="h3 mb-0">Koli Yönetimi</h1>
-        <Button 
-          variant="primary" 
-          onClick={() => setShowModal(true)}
-        >
-          <BiPlus className="me-1" />
-          Yeni Koli
-        </Button>
+        <div>
+          <Button 
+            variant="outline-secondary" 
+            className="me-2"
+            onClick={() => { setShowSearchModal(true); setSearchTerm(''); }}
+          >
+            <BiSearch className="me-1" />
+            Koli Ara
+          </Button>
+          {selectedKoliler.length > 0 && (
+            <Button 
+              variant="danger" 
+              className="me-2"
+              onClick={handleDeleteBulk}
+            >
+              <BiTrash className="me-1" />
+              Seçilenleri Sil ({selectedKoliler.length})
+            </Button>
+          )}
+          <Button 
+            variant="primary" 
+            onClick={() => setShowModal(true)}
+          >
+            <BiPlus className="me-1" />
+            Yeni Koli
+          </Button>
+        </div>
       </div>
 
       <Alert variant="info" className="mb-4">
@@ -156,6 +230,16 @@ const KoliYonetimi = () => {
             <Table responsive striped>
               <thead>
                 <tr>
+                  <th>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={handleSelectAll}
+                      style={{ border: 'none', padding: '0' }}
+                    >
+                      {selectAll ? <BiCheckSquare size={20} /> : <BiSquare size={20} />}
+                    </Button>
+                  </th>
                   <th>Koli No</th>
                   <th>Ürün Sayısı</th>
                   <th>Lokasyon</th>
@@ -169,6 +253,19 @@ const KoliYonetimi = () => {
                 {koliListesi.length > 0 ? (
                   koliListesi.map((koli, index) => (
                     <tr key={index}>
+                      <td>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          onClick={() => handleSelectKoli(koli.koli_no)}
+                          style={{ border: 'none', padding: '0' }}
+                        >
+                          {selectedKoliler.includes(koli.koli_no) ? 
+                            <BiCheckSquare size={20} /> : 
+                            <BiSquare size={20} />
+                          }
+                        </Button>
+                      </td>
                       <td>
                         <Badge bg="primary" className="fs-6">{koli.koli_no}</Badge>
                       </td>
@@ -224,7 +321,7 @@ const KoliYonetimi = () => {
                   ))
                 ) : (
                   <tr>
-                      <td colSpan={7} className="text-center text-muted py-4">
+                      <td colSpan={8} className="text-center text-muted py-4">
                       <BiBox size={48} className="mb-2" />
                       <p>Henüz koli oluşturulmamış</p>
                     </td>
@@ -342,6 +439,50 @@ const KoliYonetimi = () => {
           <Button variant="secondary" onClick={() => setShowUrunModal(false)}>
             Kapat
           </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Koli Ara Modal */}
+      <Modal show={showSearchModal} onHide={() => setShowSearchModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Koli Ara</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Koli numarası veya lokasyon</Form.Label>
+            <Form.Control
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Örn: A001 veya A Blok"
+              autoFocus
+            />
+          </Form.Group>
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {koliListesi
+              .filter(k => {
+                if (!searchTerm.trim()) return true;
+                const t = searchTerm.toLowerCase();
+                return (k.koli_no && k.koli_no.toLowerCase().includes(t)) || (k.lokasyon && k.lokasyon.toLowerCase().includes(t));
+              })
+              .map((k, i) => (
+                <div key={i} className={`p-2 mb-1 border rounded ${selectedKoli?.koli_no === k.koli_no ? 'bg-light' : ''}`}>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{k.koli_no}</strong>
+                      <span className="text-muted ms-2">{k.lokasyon || 'Lokasyon yok'}</span>
+                    </div>
+                    <div>
+                      <Badge bg="primary" className="me-2">{k.urun_sayisi} ürün</Badge>
+                      <Button size="sm" variant="outline-primary" onClick={() => handleUrunSayisiClick(k)}>İçeriği Gör</Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowSearchModal(false)}>Kapat</Button>
         </Modal.Footer>
       </Modal>
     </div>

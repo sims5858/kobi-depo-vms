@@ -14,14 +14,28 @@ const UrunToplama = () => {
   const [toplamaFisleri, setToplamaFisleri] = useState([]);
   const [selectedFisi, setSelectedFisi] = useState(null);
   const [fisiDetaylari, setFisiDetaylari] = useState([]);
+  const [cikisGecmisi, setCikisGecmisi] = useState([]);
+  const [seciliKoliGecmisi, setSeciliKoliGecmisi] = useState(null);
+  
 
   // Toplama fişlerini yükle
   const loadToplamaFisleri = async (tarih = selectedDate) => {
     try {
+      console.log('Toplama fişleri yükleniyor, tarih:', tarih);
       const response = await fetch(`/api/toplama-fisi?tarih=${tarih}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('Toplama fişleri yüklendi:', data);
         setToplamaFisleri(data);
+        // İlk fiş detayını otomatik yükle
+        if (data && data.length > 0) {
+          await loadFisiDetaylari(data[0].fisi_no);
+        } else {
+          setSelectedFisi(null);
+          setFisiDetaylari([]);
+        }
+      } else {
+        console.error('Toplama fişleri yüklenemedi:', response.status);
       }
     } catch (error) {
       console.error('Toplama fişleri yüklenirken hata:', error);
@@ -31,39 +45,67 @@ const UrunToplama = () => {
   // Toplama fişi detaylarını yükle
   const loadFisiDetaylari = async (fisiNo) => {
     try {
+      console.log('Fiş detayları yükleniyor, fiş no:', fisiNo);
       const response = await fetch(`/api/toplama-fisi/${fisiNo}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('Fiş detayları yüklendi:', data);
         setFisiDetaylari(data);
         setSelectedFisi(fisiNo);
+      } else {
+        console.error('Fiş detayları yüklenemedi:', response.status);
       }
     } catch (error) {
       console.error('Fiş detayları yüklenirken hata:', error);
     }
   };
 
-  // Sayfa yüklendiğinde toplama fişlerini yükle
+  // Sayfa yüklendiğinde ve tarih değiştiğinde toplama fişlerini yükle
   useEffect(() => {
-    loadToplamaFisleri();
+    loadToplamaFisleri(selectedDate);
+    // Fişsiz çıkış geçmişi (koli bazlı)
+    (async () => {
+      try {
+        const resp = await fetch(`/api/cikis-gecmisi?tarih=${selectedDate}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          setCikisGecmisi(data);
+          const firstKoli = data.length > 0 ? data[0].koli_no : null;
+          setSeciliKoliGecmisi(firstKoli);
+        }
+      } catch (e) {
+        console.error('Çıkış geçmişi yüklenemedi', e);
+      }
+    })();
   }, [selectedDate]);
 
-  // Toplama fişine kaydet
+  // Toplama fişine kaydet (backend beklenen şema: { urunler: [{ barkod, koli_no, adet }] })
   const saveToToplamaFisi = async (urun) => {
     try {
+      const payload = {
+        urunler: [
+          {
+            barkod: urun.urun_barkod || urun.barkod,
+            koli_no: urun.koli_no,
+            adet: urun.adet
+          }
+        ]
+      };
+
       const response = await fetch('/api/toplama-fisi', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          siparis_no: `SP-${Date.now()}`,
-          toplama_listesi: [urun]
-        }),
+        body: JSON.stringify(payload),
       });
-      
+
       if (response.ok) {
-        // Toplama fişlerini yeniden yükle
-        loadToplamaFisleri();
+        // Seçili tarihe göre yeniden yükle
+        await loadToplamaFisleri(selectedDate);
+      } else {
+        const err = await response.json().catch(() => ({}));
+        console.error('Toplama fişi kaydı başarısız:', err);
       }
     } catch (error) {
       console.error('Toplama fişine kaydetme hatası:', error);
@@ -87,11 +129,20 @@ const UrunToplama = () => {
       const koliBulundu = koliData.find(item => item.koli_no === input && item.adet > 0);
       
       if (koliBulundu) {
-        // Koli numarası bulundu
-        const koliUrunleri = koliData.filter(item => item.koli_no === input && item.adet > 0);
-        setActiveKoli(input);
-        setKoliUrunleri(koliUrunleri);
-        toast.success(`📦 ${input} koli aktif edildi. ${koliUrunleri.length} ürün bulundu.`);
+        // Koli numarası bulundu - belirli koli için detaylı veri al
+        const koliDetayResponse = await fetch(`/api/koli-envanter?koli_no=${input}`);
+        if (koliDetayResponse.ok) {
+          const koliUrunleri = await koliDetayResponse.json();
+          setActiveKoli(input);
+          setKoliUrunleri(koliUrunleri);
+          toast.success(`📦 ${input} koli aktif edildi. ${koliUrunleri.length} ürün bulundu.`);
+        } else {
+          // Fallback: genel veriden filtrele
+          const koliUrunleri = koliData.filter(item => item.koli_no === input && item.adet > 0);
+          setActiveKoli(input);
+          setKoliUrunleri(koliUrunleri);
+          toast.success(`📦 ${input} koli aktif edildi. ${koliUrunleri.length} ürün bulundu.`);
+        }
         setCurrentInput('');
         setLoading(false);
         return;
@@ -130,7 +181,7 @@ const UrunToplama = () => {
         },
         body: JSON.stringify({
           koli_no: activeKoli,
-          urun_barkod: input,
+          barkod: input,
           adet: currentAdet
         }),
       });
@@ -210,12 +261,14 @@ const UrunToplama = () => {
   // Tarihleri sırala (en yeni önce)
   const tarihler = Object.keys(gruplandirilmisListe).sort((a, b) => new Date(b) - new Date(a));
 
+  
+
   return (
-    <div className="container-fluid">
+    <div className="container-fluid page-transition">
       <div className="row">
         {/* Sol taraf - Barkod okutma */}
         <Col md={6}>
-          <Card>
+          <Card className="anim-fade-in">
             <Card.Header className="bg-primary text-white">
               <h4 className="mb-0">
                 <BiPackage className="me-2" />
@@ -413,96 +466,94 @@ const UrunToplama = () => {
             </Card>
           )}
         </Col>
-      </div>
 
-      {/* Çıkış Geçmişi - Aşağıda */}
-      <Row className="mt-4">
-        <Col md={12}>
-          <Card>
-            <Card.Header>
-              <h5 className="mb-0">📊 Çıkış Geçmişi</h5>
+        {/* Sağ taraf - Çıkış Geçmişi (fişsiz görünüm) */}
+        <Col md={6}>
+          <Card className="anim-slide-up delay-1">
+            <Card.Header className="py-2 d-flex justify-content-between align-items-center">
+              <h6 className="mb-0">📊 Çıkış Geçmişi</h6>
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="date"
+                  size="sm"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setSelectedFisi(null);
+                    setFisiDetaylari([]);
+                  }}
+                />
+                <Button 
+                  variant="outline-primary" 
+                  size="sm"
+                  onClick={() => {
+                    loadToplamaFisleri(selectedDate);
+                    fetch(`/api/cikis-gecmisi?tarih=${selectedDate}`)
+                      .then(r => r.ok ? r.json() : [])
+                      .then(data => {
+                        setCikisGecmisi(data || []);
+                        setSeciliKoliGecmisi(data && data.length ? data[0].koli_no : null);
+                      })
+                      .catch(() => {});
+                  }}
+                  className="ms-2"
+                >
+                  Yenile
+                </Button>
+              </div>
             </Card.Header>
-            <Card.Body>
+            <Card.Body className="py-2">
               <Row>
-                <Col md={4}>
-                  <Form.Group>
-                    <Form.Label>Tarih Seçin</Form.Label>
-                    <Form.Control
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => {
-                        setSelectedDate(e.target.value);
-                        setSelectedFisi(null);
-                        setFisiDetaylari([]);
-                      }}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={8}>
-                  <div className="d-flex align-items-end">
-                    <Button 
-                      variant="outline-primary" 
-                      onClick={() => loadToplamaFisleri()}
-                      className="ms-2"
-                    >
-                      Yenile
-                    </Button>
-                  </div>
-                </Col>
-              </Row>
-              
-              {/* Toplama Fişi Listesi */}
-              <Row className="mt-3">
                 <Col md={6}>
-                  <h6>Toplama Fişleri ({toplamaFisleri.length})</h6>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    {toplamaFisleri.length > 0 ? (
-                      toplamaFisleri.map((fisi, index) => (
-                        <div 
-                          key={index}
-                          className={`p-2 mb-2 border rounded cursor-pointer ${selectedFisi === fisi.fisi_no ? 'bg-primary text-white' : 'bg-light'}`}
-                          onClick={() => loadFisiDetaylari(fisi.fisi_no)}
-                          style={{ cursor: 'pointer' }}
+                  <h6 className="mb-2" style={{ fontSize: '16px' }}>Koliler</h6>
+                  <div style={{ maxHeight: '520px', overflowY: 'auto' }}>
+                    {cikisGecmisi.length > 0 ? (
+                      [...new Set(cikisGecmisi.map(x => x.koli_no))].map((k, idx) => (
+                        <div
+                          key={idx}
+                          className={`p-2 mb-1 border rounded ${seciliKoliGecmisi === k ? 'bg-primary text-white' : 'bg-light'}`}
+                          style={{ cursor: 'pointer', fontSize: '13px' }}
+                          onClick={() => setSeciliKoliGecmisi(k)}
                         >
                           <div className="d-flex justify-content-between">
-                            <span><strong>{fisi.fisi_no}</strong></span>
-                            <span>{fisi.cikis_sayisi} ürün</span>
+                            <strong>{k}</strong>
+                            <span>
+                              {cikisGecmisi.filter(x => x.koli_no === k).reduce((s, x) => s + x.adet, 0)} adet
+                            </span>
                           </div>
-                          <small>{new Date(fisi.tarih).toLocaleString('tr-TR')}</small>
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted">Bu tarihte çıkış yapılmamış</p>
+                      <p className="text-muted" style={{ fontSize: '14px' }}>Bu tarihte çıkış yapılmamış</p>
                     )}
                   </div>
                 </Col>
-                
                 <Col md={6}>
-                  <h6>Fiş Detayları</h6>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    {fisiDetaylari.length > 0 ? (
+                  <h6 className="mb-2" style={{ fontSize: '16px' }}>Ürün Detayları</h6>
+                  <div style={{ maxHeight: '520px', overflowY: 'auto' }}>
+                    {seciliKoliGecmisi ? (
                       <Table size="sm">
                         <thead>
                           <tr>
-                            <th>Koli</th>
-                            <th>Barkod</th>
-                            <th>Ürün</th>
-                            <th>Adet</th>
+                            <th style={{ fontSize: '12px' }}>Barkod</th>
+                            <th style={{ fontSize: '12px' }}>Ürün</th>
+                            <th style={{ fontSize: '12px' }}>Adet</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {fisiDetaylari.map((detay, index) => (
-                            <tr key={index}>
-                              <td><Badge bg="primary">{detay.koli_no}</Badge></td>
-                              <td><code>{detay.urun_barkod}</code></td>
-                              <td>{detay.urun_adi}</td>
-                              <td><Badge bg="success">{detay.adet}</Badge></td>
-                            </tr>
-                          ))}
+                          {cikisGecmisi
+                            .filter(x => x.koli_no === seciliKoliGecmisi)
+                            .map((detay, i) => (
+                              <tr key={i} style={{ fontSize: '12px' }}>
+                                <td><code style={{ fontSize: '10px' }}>{detay.urun_barkod}</code></td>
+                                <td style={{ fontSize: '11px' }}>{detay.urun_adi}</td>
+                                <td><Badge bg="success" style={{ fontSize: '10px' }}>{detay.adet}</Badge></td>
+                              </tr>
+                            ))}
                         </tbody>
                       </Table>
                     ) : (
-                      <p className="text-muted">Fiş seçin</p>
+                      <p className="text-muted" style={{ fontSize: '14px' }}>Koli seçin</p>
                     )}
                   </div>
                 </Col>
@@ -510,7 +561,9 @@ const UrunToplama = () => {
             </Card.Body>
           </Card>
         </Col>
-      </Row>
+      </div>
+
+      
     </div>
   );
 };

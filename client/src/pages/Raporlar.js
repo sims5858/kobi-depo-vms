@@ -4,8 +4,7 @@ import { BiTrendingUp, BiDownload, BiSearch, BiBox } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 
 const Raporlar = () => {
-  const [siparisNo, setSiparisNo] = useState('');
-  const [siparisRaporu, setSiparisRaporu] = useState([]);
+  
   const [koliEnvanterRaporu, setKoliEnvanterRaporu] = useState([]);
   const [bosKoliRaporu, setBosKoliRaporu] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -22,21 +21,35 @@ const Raporlar = () => {
   const loadKoliEnvanterRaporu = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        min_adet: filtreMinAdet,
-        max_adet: filtreMaxAdet
-      });
+      const params = new URLSearchParams();
       
+      // Min adet filtresi
+      if (filtreMinAdet && filtreMinAdet > 0) {
+        params.set('min_adet', String(filtreMinAdet));
+      }
+      
+      // Max adet filtresi
+      if (filtreMaxAdet && filtreMaxAdet < 999999) {
+        params.set('max_adet', String(filtreMaxAdet));
+      }
+      
+      // Sadece boş koliler
       if (sadeceBos) {
         params.set('sadece_bos', 'true');
       }
 
+      console.log('API çağrısı:', `/api/rapor/koli-envanter?${params}`);
+      
       const response = await fetch(`/api/rapor/koli-envanter?${params}`);
+      if (!response.ok) {
+        throw new Error(`API hatası: ${response.status}`);
+      }
       const data = await response.json();
-      setKoliEnvanterRaporu(data);
+      console.log('API yanıtı:', data);
+      setKoliEnvanterRaporu(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Koli envanter raporu yüklenirken hata:', error);
-      toast.error('Rapor yüklenirken hata oluştu');
+      toast.error('Rapor yüklenirken hata oluştu: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -52,105 +65,14 @@ const Raporlar = () => {
     }
   };
 
-  const loadSiparisRaporu = async () => {
-    if (!siparisNo.trim()) {
-      toast.warning('Lütfen sipariş numarası girin');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/rapor/siparis/${siparisNo}`);
-      const data = await response.json();
-      setSiparisRaporu(data);
-    } catch (error) {
-      console.error('Sipariş raporu yüklenirken hata:', error);
-      toast.error('Sipariş raporu yüklenirken hata oluştu');
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const exportToExcel = (data, filename) => {
     // Excel export işlemi burada yapılacak
     toast.success(`${filename} Excel olarak indirildi`);
   };
 
-  const SiparisRaporu = () => (
-    <Card>
-      <Card.Header>
-        <h5 className="mb-0">Sipariş Raporu</h5>
-      </Card.Header>
-      <Card.Body>
-        <Row className="mb-3">
-          <Col md={8}>
-            <Form.Control
-              type="text"
-              value={siparisNo}
-              onChange={(e) => setSiparisNo(e.target.value)}
-              placeholder="Sipariş numarasını girin"
-            />
-          </Col>
-          <Col md={4}>
-            <Button 
-              variant="primary" 
-              onClick={loadSiparisRaporu}
-              disabled={loading}
-              className="w-100"
-            >
-              <BiSearch className="me-1" />
-              {loading ? 'Yükleniyor...' : 'Rapor Al'}
-            </Button>
-          </Col>
-        </Row>
-
-        {siparisRaporu.length > 0 && (
-          <>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <Badge bg="success" className="fs-6">
-                {siparisRaporu.length} Koli Bulundu
-              </Badge>
-              <Button 
-                variant="outline-success" 
-                size="sm"
-                onClick={() => exportToExcel(siparisRaporu, 'siparis-raporu')}
-              >
-                <BiDownload className="me-1" />
-                Excel İndir
-              </Button>
-            </div>
-
-            <Table responsive striped>
-              <thead>
-                <tr>
-                  <th>Koli No</th>
-                  <th>Lokasyon</th>
-                  <th>Barkod</th>
-                  <th>Ürün Adı</th>
-                  <th>Adet</th>
-                </tr>
-              </thead>
-              <tbody>
-                {siparisRaporu.map((item, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Badge bg="primary">{item.koli_no}</Badge>
-                    </td>
-                    <td>{item.lokasyon || 'Belirsiz'}</td>
-                    <td>{item.barkod}</td>
-                    <td>{item.urun_adi}</td>
-                    <td>
-                      <Badge bg="success">{item.adet}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </>
-        )}
-      </Card.Body>
-    </Card>
-  );
+  
 
   const KoliEnvanterRaporu = () => (
     <Card>
@@ -318,8 +240,8 @@ const Raporlar = () => {
   );
 
   return (
-    <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="page-transition">
+      <div className="d-flex justify-content-between align-items-center mb-4 anim-fade-in">
         <h1 className="h3 mb-0">Raporlar</h1>
         <Badge bg="primary" className="fs-6">
           <BiTrendingUp className="me-1" />
@@ -327,15 +249,12 @@ const Raporlar = () => {
         </Badge>
       </div>
 
-      <Alert variant="info" className="mb-4">
+      <Alert variant="info" className="mb-4 anim-slide-up delay-1">
         <strong>Rapor Modülü:</strong> Depo envanteri, sipariş durumu ve koli bazlı analizleri 
         görüntüleyin ve Excel formatında indirin.
       </Alert>
 
-      <Tabs defaultActiveKey="siparis" className="mb-4">
-        <Tab eventKey="siparis" title="Sipariş Raporu">
-          <SiparisRaporu />
-        </Tab>
+      <Tabs defaultActiveKey="envanter" className="mb-4 anim-scale-in delay-2">
         <Tab eventKey="envanter" title="Koli Envanter Raporu">
           <KoliEnvanterRaporu />
         </Tab>

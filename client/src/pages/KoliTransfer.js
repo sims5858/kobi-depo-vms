@@ -236,7 +236,7 @@ const KoliTransfer = () => {
   };
 
   return (
-    <div className="fade-in">
+    <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="h3 mb-0">Koli Transfer</h1>
         <Badge bg="primary" className="fs-6">

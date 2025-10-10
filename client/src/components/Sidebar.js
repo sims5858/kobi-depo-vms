@@ -2,7 +2,7 @@ import React from 'react';
 import { Nav } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const Sidebar = ({ collapsed }) => {
+const Sidebar = ({ collapsed, user }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -50,6 +50,16 @@ const Sidebar = ({ collapsed }) => {
       description: 'Ürün İşlemleri'
     }
   ];
+
+  // Admin menüsü
+  if (user?.rol === 'admin') {
+    menuItems.push({
+      path: '/admin',
+      icon: 'bi-shield-check',
+      label: 'Admin Panel',
+      description: 'Kullanıcı Yönetimi'
+    });
+  }
 
   return (
     <div
