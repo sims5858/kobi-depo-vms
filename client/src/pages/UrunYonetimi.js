@@ -98,7 +98,7 @@ const UrunYonetimi = () => {
 
   useEffect(() => {
     loadUrunListesi();
-  }, [loadUrunListesi]);
+  }, []);
 
   const loadUrunListesi = async () => {
     setLoading(true);
