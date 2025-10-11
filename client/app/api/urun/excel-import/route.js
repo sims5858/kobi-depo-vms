@@ -1,21 +1,13 @@
 // Next.js API route - Excel ile ürün import
 import { loadData, updateUrunler } from '../../data-store.js';
 
-// Kalıcı veri sisteminden ürünleri al
-let urunler = [];
-
 // Veriyi yükle
-const initializeData = () => {
+const getUrunler = () => {
   const data = loadData();
-  urunler = data.urunler;
-  console.log(`Ürün verisi yüklendi: ${urunler.length} ürün`);
+  return data.urunler;
 };
 
-// İlk yükleme
-initializeData();
-
-// Ürünleri export et
-export { urunler };
+// Export kaldırıldı - Next.js API route'ları sadece HTTP metodları export etmeli
 
 export async function POST(request) {
   try {
@@ -28,6 +20,8 @@ export async function POST(request) {
       return Response.json({ error: 'Ürün listesi gerekli' }, { status: 400 });
     }
 
+    // Mevcut ürünleri al
+    const urunler = getUrunler();
     let eklenen = 0;
     let guncellenen = 0;
 

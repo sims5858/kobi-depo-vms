@@ -1,5 +1,5 @@
 // Next.js API route - Koli envanter raporu
-import { urunler } from '../../urun/excel-import/route.js';
+import { loadData } from '../../data-store.js';
 
 export async function GET(request) {
   try {
@@ -9,6 +9,10 @@ export async function GET(request) {
     const sadeceBos = searchParams.get('sadece_bos');
     
     console.log('Koli envanter raporu filtresi:', { minAdet, maxAdet, sadeceBos });
+    
+    // Veriyi yükle
+    const data = loadData();
+    const urunler = data.urunler;
     
     // Ürün verilerinden koli envanter raporu oluştur
     const koliMap = new Map();

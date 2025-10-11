@@ -1,5 +1,5 @@
 // Next.js API route - Admin kullanıcı yönetimi
-export let kullanicilar = [
+let kullanicilar = [
   {
     id: 1,
     kullanici_adi: 'admin',
