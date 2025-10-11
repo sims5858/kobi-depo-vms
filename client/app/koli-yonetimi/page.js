@@ -47,7 +47,7 @@ const KoliYonetimi = () => {
     setLoading(true);
 
     try {
-      const url = editingKoli ? `/api/koli/${editingKoli.id}` : '/api/koli';
+      const url = editingKoli ? `/api/koli/${editingKoli.koli_no}` : '/api/koli-liste';
       const method = editingKoli ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -65,11 +65,13 @@ const KoliYonetimi = () => {
         setEditingKoli(null);
         loadKoliListesi(searchQuery);
       } else {
-        toast.error('Koli kaydedilirken hata oluştu');
+        const errorData = await response.json();
+        console.error('Koli kaydetme API hatası:', errorData);
+        toast.error(errorData.error || 'Koli kaydedilirken hata oluştu');
       }
     } catch (error) {
       console.error('Koli kaydetme hatası:', error);
-      toast.error('Koli kaydedilirken hata oluştu');
+      toast.error('Koli kaydedilirken hata oluştu: ' + error.message);
     } finally {
       setLoading(false);
     }

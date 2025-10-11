@@ -1,5 +1,51 @@
-// Next.js API route - Tekil koli silme
+// Next.js API route - Tekil koli düzenleme ve silme
 import { loadData, saveData } from '../../data-store.js';
+
+// Koli düzenle
+export async function PUT(request, { params }) {
+  try {
+    const { koli_no } = params;
+    const body = await request.json();
+    const { lokasyon, durum } = body;
+    
+    console.log('Koli düzenleniyor:', { koli_no, lokasyon, durum });
+    
+    if (!lokasyon) {
+      return Response.json({ error: 'Lokasyon gerekli' }, { status: 400 });
+    }
+    
+    // Veriyi yükle
+    const data = loadData();
+    
+    // Koli bul (koliler listesinde)
+    const koliIndex = data.koliler?.findIndex(k => k.koli_no === koli_no);
+    if (koliIndex === -1 || !data.koliler) {
+      return Response.json({ error: 'Koli bulunamadı' }, { status: 404 });
+    }
+    
+    // Koli güncelle
+    data.koliler[koliIndex] = {
+      ...data.koliler[koliIndex],
+      lokasyon,
+      durum: durum || 'aktif'
+    };
+    
+    // Veriyi kaydet
+    saveData(data);
+    
+    console.log('Koli başarıyla güncellendi:', data.koliler[koliIndex]);
+    
+    return Response.json({
+      success: true,
+      message: 'Koli başarıyla güncellendi',
+      koli: data.koliler[koliIndex]
+    });
+    
+  } catch (error) {
+    console.error('Koli güncelleme API hatası:', error);
+    return Response.json({ error: 'Sunucu hatası' }, { status: 500 });
+  }
+}
 
 export async function DELETE(request, { params }) {
   try {
