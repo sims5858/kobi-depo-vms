@@ -1,0 +1,144 @@
+'use client'
+
+import { Inter } from 'next/font/google'
+import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { ToastContainer } from 'react-toastify'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'react-toastify/dist/ReactToastify.css'
+import './globals.css'
+import Navbar from '../components/Navbar'
+import Sidebar from '../components/Sidebar'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export default function RootLayout({ children }) {
+  const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    // Sayfa yüklendiğinde localStorage'dan kullanıcı bilgilerini al
+    try {
+      const savedToken = localStorage.getItem('token')
+      const savedUser = localStorage.getItem('user')
+      
+      if (savedToken && savedUser) {
+        const userData = JSON.parse(savedUser);
+        setToken(savedToken)
+        setUser(userData)
+      }
+    } catch (error) {
+      console.error('localStorage hatası:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+    setToken(null)
+    
+    // Sayfayı yenile ve login'e yönlendir
+    window.location.href = '/login'
+  }
+
+  // Login sayfası için özel layout
+  if (pathname === '/login') {
+    return (
+      <html lang="tr">
+        <body className={inter.className}>
+          {children}
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
+        </body>
+      </html>
+    )
+  }
+
+  // Ana sayfa için yönlendirme - artık page.js'te yapılıyor
+
+  if (loading) {
+    return (
+      <html lang="tr">
+        <body className={inter.className}>
+          <div className="d-flex justify-content-center align-items-center min-vh-100">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Yükleniyor...</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    )
+  }
+
+  // Korumalı sayfalar için authentication kontrolü
+  const protectedRoutes = ['/dashboard', '/koli-transfer', '/urun-toplama', '/sayim', '/raporlar', '/koli-yonetimi', '/urun-yonetimi', '/admin']
+  const isProtectedRoute = protectedRoutes.includes(pathname)
+
+  if (isProtectedRoute && (!user || !token)) {
+    router.push('/login')
+    return null
+  }
+
+  // Admin sayfası için özel kontrol
+  if (pathname === '/admin' && user?.rol !== 'admin') {
+    router.push('/dashboard')
+    return null
+  }
+
+  return (
+    <html lang="tr">
+      <body className={inter.className}>
+        {user ? (
+          <>
+            <Navbar onToggleSidebar={toggleSidebar} user={user} onLogout={handleLogout} />
+            <div className="d-flex">
+              <Sidebar collapsed={sidebarCollapsed} user={user} />
+              <div
+                className="main-content flex-grow-1"
+                style={{
+                  marginLeft: sidebarCollapsed ? 60 : 250,
+                  transition: 'margin-left 0.3s ease'
+                }}
+              >
+                {children}
+              </div>
+            </div>
+          </>
+        ) : (
+          children
+        )}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+      </body>
+    </html>
+  )
+}
