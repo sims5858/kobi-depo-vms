@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Table, Alert, Badge, Modal, Pagination } from 'react-bootstrap';
-import { BiTag, BiPlus, BiEdit, BiTrash, BiSave, BiX, BiSearch, BiUpload, BiFile, BiMapPin, BiBox, BiCheck } from 'react-icons/bi';
+import { BiTag, BiPlus, BiEdit, BiTrash, BiSave, BiX, BiSearch, BiUpload, BiFile, BiMapPin, BiBox, BiCheck, BiDownload } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 
@@ -249,6 +249,42 @@ const UrunYonetimi = () => {
     }
   };
 
+  // Excel export fonksiyonu
+  const handleExcelExport = () => {
+    try {
+      // Export için veri hazırla
+      const exportData = filteredUrunler.map(urun => ({
+        'Barkod': urun.barkod,
+        'Ürün Adı': urun.urun_adi,
+        'Açıklama': urun.aciklama || '',
+        'Birim': urun.birim || 'adet',
+        'Beden': urun.beden || '',
+        'Stok Adet': urun.stok_adet || 0,
+        'Lokasyon': urun.lokasyon || '',
+        'Koli Detayları': urun.koli_detaylari ? 
+          Object.entries(urun.koli_detaylari)
+            .map(([koli, adet]) => `${koli}:${adet}`)
+            .join(', ') : '',
+        'Oluşturma Tarihi': urun.olusturma_tarihi ? 
+          new Date(urun.olusturma_tarihi).toLocaleDateString('tr-TR') : ''
+      }));
+
+      // Excel dosyası oluştur
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Ürün Listesi');
+
+      // Dosyayı indir
+      const fileName = `urun-listesi-${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(`${exportData.length} ürün Excel dosyası olarak indirildi`);
+    } catch (error) {
+      console.error('Excel export hatası:', error);
+      toast.error('Excel dosyası oluşturulurken hata oluştu');
+    }
+  };
+
   const handleSelectUrun = (barkod, checked) => {
     if (checked) {
       setSelectedUrunler([...selectedUrunler, barkod]);
@@ -439,6 +475,18 @@ const UrunYonetimi = () => {
               </div>
             </div>
             <div className="d-flex gap-1">
+              {filteredUrunler.length > 0 && (
+                <Button 
+                  variant="outline-success"
+                  size="sm"
+                  onClick={handleExcelExport}
+                  className="d-flex align-items-center"
+                  title="Ürün listesini Excel olarak indir"
+                >
+                  <BiDownload className="me-1" />
+                  Excel İndir
+                </Button>
+              )}
               {filteredUrunler.length > 0 && (
                 <Button 
                   variant={selectedUrunler.length === filteredUrunler.length ? "outline-secondary" : "outline-primary"}
