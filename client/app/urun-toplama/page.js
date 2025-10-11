@@ -12,6 +12,30 @@ const UrunToplama = () => {
   const [loading, setLoading] = useState(false);
   const [activeKoli, setActiveKoli] = useState(null);
   const [koliUrunleri, setKoliUrunleri] = useState([]);
+
+  // localStorage'dan toplama listesini yükle
+  useEffect(() => {
+    try {
+      const savedList = localStorage.getItem('urunToplamaListesi');
+      if (savedList) {
+        const parsedList = JSON.parse(savedList);
+        setToplamaListesi(parsedList);
+        console.log('Toplama listesi localStorage\'dan yüklendi:', parsedList.length, 'ürün');
+      }
+    } catch (error) {
+      console.error('Toplama listesi yüklenirken hata:', error);
+    }
+  }, []);
+
+  // Toplama listesini localStorage'a kaydet
+  const saveToplamaListesi = (list) => {
+    try {
+      localStorage.setItem('urunToplamaListesi', JSON.stringify(list));
+      console.log('Toplama listesi localStorage\'a kaydedildi:', list.length, 'ürün');
+    } catch (error) {
+      console.error('Toplama listesi kaydedilirken hata:', error);
+    }
+  };
   
 
 
@@ -152,7 +176,9 @@ const UrunToplama = () => {
           tarih: new Date().toLocaleString('tr-TR')
         };
         
-        setToplamaListesi(prev => [...prev, yeniUrun]);
+        const yeniListe = [...toplamaListesi, yeniUrun];
+        setToplamaListesi(yeniListe);
+        saveToplamaListesi(yeniListe);
         
         // Koli verilerini yenile
         await refreshKoliData();
@@ -198,7 +224,9 @@ const UrunToplama = () => {
   }, [currentInput, loading, handleInput]);
 
   const handleUrunSil = (index) => {
-    setToplamaListesi(toplamaListesi.filter((_, i) => i !== index));
+    const yeniListe = toplamaListesi.filter((_, i) => i !== index);
+    setToplamaListesi(yeniListe);
+    saveToplamaListesi(yeniListe);
     toast.success('Ürün toplama listesinden kaldırıldı');
   };
 
@@ -350,6 +378,20 @@ const UrunToplama = () => {
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">✅ Çıkış Yapılan Ürünler</h5>
                   <div className="d-flex align-items-center gap-2">
+                    <Button
+                      variant="outline-light"
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm('Tüm çıkış listesi temizlenecek. Emin misiniz?')) {
+                          setToplamaListesi([]);
+                          saveToplamaListesi([]);
+                          toast.success('Çıkış listesi temizlendi');
+                        }
+                      }}
+                      title="Tüm listeyi temizle"
+                    >
+                      🗑️ Temizle
+                    </Button>
                     <Form.Control
                       type="date"
                       size="sm"
