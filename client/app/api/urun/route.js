@@ -1,6 +1,9 @@
 // Next.js API route - Ürün listesi
 import { loadData } from '../data-store.js';
 
+// Dynamic route - static rendering'i devre dışı bırak
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

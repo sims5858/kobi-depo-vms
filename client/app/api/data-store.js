@@ -71,3 +71,34 @@ export function updateActivities(activities) {
   data.activities = activities;
   saveData(data);
 }
+
+// Toplama fişi ekle
+export function addToplamaFisi(fisi) {
+  const data = loadData();
+  if (!data.toplamaFisleri) {
+    data.toplamaFisleri = [];
+  }
+  data.toplamaFisleri.push(fisi);
+  saveData(data);
+  return fisi;
+}
+
+// Toplama fişi detaylarını al
+export function getFisiDetaylari(fisiNo) {
+  const data = loadData();
+  if (!data.toplamaFisleri) {
+    return [];
+  }
+  return data.toplamaFisleri.filter(fisi => fisi.fisi_no === fisiNo);
+}
+
+// Çıkış kaydı ekle
+export function addCikisKaydi(kayit) {
+  const data = loadData();
+  if (!data.cikisGecmisi) {
+    data.cikisGecmisi = [];
+  }
+  data.cikisGecmisi.push(kayit);
+  saveData(data);
+  return kayit;
+}
