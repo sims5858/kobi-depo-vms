@@ -16,6 +16,7 @@ export default function RootLayout({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
@@ -110,9 +111,19 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         {user ? (
           <>
-            <Navbar onToggleSidebar={toggleSidebar} user={user} onLogout={handleLogout} />
+            <Navbar 
+              onToggleSidebar={toggleSidebar} 
+              user={user} 
+              onLogout={handleLogout}
+              onToggleMobileSidebar={() => setSidebarMobileOpen(!sidebarMobileOpen)}
+            />
             <div className="d-flex">
-              <Sidebar collapsed={sidebarCollapsed} user={user} />
+              <Sidebar 
+                collapsed={sidebarCollapsed} 
+                user={user}
+                mobileOpen={sidebarMobileOpen}
+                onMobileClose={() => setSidebarMobileOpen(false)}
+              />
               <div
                 className="main-content flex-grow-1"
                 style={{
@@ -123,6 +134,19 @@ export default function RootLayout({ children }) {
                 {children}
               </div>
             </div>
+            {/* Mobile sidebar overlay */}
+            {sidebarMobileOpen && (
+              <div 
+                className="d-md-none position-fixed w-100 h-100 bg-dark"
+                style={{ 
+                  top: 0, 
+                  left: 0, 
+                  zIndex: 999, 
+                  opacity: 0.5 
+                }}
+                onClick={() => setSidebarMobileOpen(false)}
+              />
+            )}
           </>
         ) : (
           children

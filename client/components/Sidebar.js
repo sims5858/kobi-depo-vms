@@ -4,7 +4,7 @@ import React from 'react';
 import { Nav } from 'react-bootstrap';
 import { usePathname, useRouter } from 'next/navigation';
 
-const Sidebar = ({ collapsed, user }) => {
+const Sidebar = ({ collapsed, user, mobileOpen, onMobileClose }) => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -65,10 +65,10 @@ const Sidebar = ({ collapsed, user }) => {
 
   return (
     <div
-      className={`sidebar position-fixed ${collapsed ? 'collapsed' : ''}`}
+      className={`sidebar position-fixed ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'show' : ''}`}
       style={{
         width: collapsed ? '60px' : '250px',
-        transition: 'width 0.3s',
+        transition: 'width 0.3s, transform 0.3s',
         top: 56, // navbar yüksekliği
         bottom: 0,
         overflowY: 'auto',
@@ -84,6 +84,10 @@ const Sidebar = ({ collapsed, user }) => {
               onClick={(e) => {
                 e.preventDefault();
                 router.push(item.path);
+                // Mobilde menüyü kapat
+                if (onMobileClose) {
+                  onMobileClose();
+                }
               }}
               title={collapsed ? item.label : ''}
             >

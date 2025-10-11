@@ -5,7 +5,7 @@ import { Navbar as BSNavbar, Nav } from 'react-bootstrap';
 import { BiMenu, BiUser, BiLogOut, BiShield } from 'react-icons/bi';
 import { useRouter } from 'next/navigation';
 
-const Navbar = ({ onToggleSidebar, user, onLogout }) => {
+const Navbar = ({ onToggleSidebar, user, onLogout, onToggleMobileSidebar }) => {
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
   
@@ -31,20 +31,32 @@ const Navbar = ({ onToggleSidebar, user, onLogout }) => {
   return (
     <BSNavbar bg="dark" variant="dark" expand="lg" className="navbar-expand-lg">
       <div className="d-flex align-items-center">
+        {/* Desktop sidebar toggle */}
         <button
-          className="btn btn-link text-light me-3"
+          className="btn btn-link text-light me-3 d-none d-md-block"
           onClick={onToggleSidebar}
           style={{ border: 'none', background: 'none' }}
         >
           <BiMenu size={24} />
         </button>
+        
+        {/* Mobile sidebar toggle */}
+        <button
+          className="btn btn-link text-light me-3 d-md-none"
+          onClick={onToggleMobileSidebar}
+          style={{ border: 'none', background: 'none' }}
+        >
+          <BiMenu size={24} />
+        </button>
+        
         <BSNavbar.Brand
           href="#"
           onClick={(e) => { e.preventDefault(); router.push('/dashboard'); }}
           className="fw-bold"
         >
           <i className="bi bi-box-seam me-2"></i>
-          KOBİ Depo V3 VMS
+          <span className="d-none d-sm-inline">KOBİ Depo V3 VMS</span>
+          <span className="d-sm-none">VMS</span>
         </BSNavbar.Brand>
       </div>
       
