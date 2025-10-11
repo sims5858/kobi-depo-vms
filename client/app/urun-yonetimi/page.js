@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Form, Table, Alert, Badge, Modal } from 'react-bootstrap';
+import { Card, Row, Col, Button, Form, Table, Alert, Badge, Modal, Pagination } from 'react-bootstrap';
 import { BiTag, BiPlus, BiEdit, BiTrash, BiSave, BiX, BiSearch, BiUpload, BiFile, BiMapPin, BiBox, BiCheck } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
@@ -898,4 +898,4 @@ const UrunYonetimi = () => {
        );
      };
 
-     export default UrunYonetimi;
+export default UrunYonetimi;
