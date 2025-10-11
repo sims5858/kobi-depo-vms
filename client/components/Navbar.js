@@ -52,11 +52,12 @@ const Navbar = ({ onToggleSidebar, user, onLogout, onToggleMobileSidebar }) => {
         <BSNavbar.Brand
           href="#"
           onClick={(e) => { e.preventDefault(); router.push('/dashboard'); }}
-          className="fw-bold"
+          className="fw-bold d-flex align-items-center"
         >
-          <i className="bi bi-box-seam me-2"></i>
-          <span className="d-none d-sm-inline">KOBİ Depo V3 VMS</span>
-          <span className="d-sm-none">VMS</span>
+          <img src="/logo.svg" alt="CoreTrack V3" width="32" height="32" className="me-2" />
+          <span className="d-none d-lg-inline">CoreTrack V3 S.A Corporation</span>
+          <span className="d-lg-none d-sm-inline">CoreTrack V3</span>
+          <span className="d-sm-none">CoreTrack</span>
         </BSNavbar.Brand>
       </div>
       

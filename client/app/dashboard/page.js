@@ -125,8 +125,11 @@ const Dashboard = () => {
       <div className="bg-white border-bottom px-4 py-3 anim-fade-in" style={{ borderColor: '#e9ecef' }}>
         <div className="d-flex align-items-center justify-content-between">
           <div>
-            <h1 className="h3 mb-1 fw-bold text-dark">Dashboard</h1>
-            <p className="text-muted small mb-0">Depo yönetim sistemi genel bakış</p>
+            <div className="d-flex align-items-center mb-1">
+              <img src="/logo.svg" alt="CoreTrack V3" width="32" height="32" className="me-2" />
+              <h1 className="h3 mb-0 fw-bold text-dark">CoreTrack V3 Dashboard</h1>
+            </div>
+            <p className="text-muted small mb-0">S.A Corporation - Depo yönetim sistemi genel bakış</p>
           </div>
           <div className="d-flex align-items-center">
             <div className="text-end me-3">

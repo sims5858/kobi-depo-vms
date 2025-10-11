@@ -1,6 +1,7 @@
 {
-  "name": "vms-client",
+  "name": "coretrack-v3-client",
   "version": "1.0.0",
+  "description": "CoreTrack V3 S.A Corporation - Depo Yönetim Sistemi",
   "private": true,
   "scripts": {
     "dev": "next dev",

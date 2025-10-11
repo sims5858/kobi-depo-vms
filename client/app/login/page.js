@@ -85,10 +85,14 @@ const Login = () => {
         <Col md={6} lg={4} className="mx-auto">
           <Card className="shadow anim-scale-in">
             <Card.Header className="bg-primary text-white text-center">
-              <h4 className="mb-0">
+              <div className="d-flex align-items-center justify-content-center mb-2">
+                <img src="/logo.svg" alt="CoreTrack V3" width="40" height="40" className="me-2" />
+                <h4 className="mb-0">CoreTrack V3</h4>
+              </div>
+              <h5 className="mb-0">
                 <BiLogIn className="me-2" />
-                VMS Giriş
-              </h4>
+                S.A Corporation Giriş
+              </h5>
             </Card.Header>
             <Card.Body className="p-4">
               <Form onSubmit={handleSubmit}>
