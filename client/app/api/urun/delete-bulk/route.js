@@ -1,5 +1,5 @@
 // Next.js API route - Toplu ürün silme
-import { urunler } from '../excel-import/route.js';
+import { loadData, updateUrunler } from '../../data-store.js';
 
 export async function POST(request) {
   try {
@@ -10,6 +10,10 @@ export async function POST(request) {
     if (!barkodlar || !Array.isArray(barkodlar)) {
       return Response.json({ error: 'Barkod listesi gerekli' }, { status: 400 });
     }
+
+    // Veriyi yükle
+    const data = loadData();
+    const urunler = data.urunler;
 
     let silinen = 0;
     const hatalar = [];

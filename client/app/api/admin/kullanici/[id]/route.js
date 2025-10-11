@@ -1,5 +1,17 @@
 // Next.js API route - Admin kullanıcı düzenleme ve silme
-import { kullanicilar } from '../route.js';
+// Kullanıcı verilerini doğrudan burada tanımlayalım
+let kullanicilar = [
+  {
+    id: 1,
+    kullanici_adi: 'admin',
+    ad_soyad: 'Admin User',
+    email: 'admin@vms.com',
+    sifre: 'admin123',
+    rol: 'admin',
+    aktif: true,
+    olusturma_tarihi: new Date().toISOString()
+  }
+];
 
 export async function PUT(request, { params }) {
   try {

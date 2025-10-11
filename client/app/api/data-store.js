@@ -1,137 +1,86 @@
-// Veri saklama sistemi - Kalıcı veri yönetimi
+// Kalıcı veri yönetimi sistemi
 import fs from 'fs';
 import path from 'path';
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'vms-data.json');
+const DATA_FILE = path.join(process.cwd(), 'vms-data.json');
 
-// Veri klasörünü oluştur
-const ensureDataDir = () => {
-  const dataDir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-};
-
-// Varsayılan veri yapısı
+// Varsayılan veri
 const defaultData = {
   urunler: [],
+  kullanicilar: [
+    {
+      id: 1,
+      kullanici_adi: 'admin',
+      ad_soyad: 'Admin User',
+      email: 'admin@vms.com',
+      sifre: 'admin123',
+      rol: 'admin',
+      aktif: true,
+      olusturma_tarihi: new Date().toISOString()
+    }
+  ],
   cikisGecmisi: [],
   toplamaFisleri: [],
-  lastUpdated: new Date().toISOString()
+  activities: []
 };
 
-// Veriyi dosyadan oku
-export const loadData = () => {
+// Veriyi yükle
+export function loadData() {
   try {
-    ensureDataDir();
-    
     if (fs.existsSync(DATA_FILE)) {
-      const fileContent = fs.readFileSync(DATA_FILE, 'utf8');
-      const data = JSON.parse(fileContent);
-      console.log(`Veri yüklendi: ${data.urunler.length} ürün, ${data.cikisGecmisi.length} çıkış kaydı`);
-      return data;
-    } else {
-      console.log('Veri dosyası bulunamadı, varsayılan veri oluşturuluyor');
-      saveData(defaultData);
-      return defaultData;
+      const data = fs.readFileSync(DATA_FILE, 'utf8');
+      return JSON.parse(data);
     }
   } catch (error) {
     console.error('Veri yükleme hatası:', error);
-    return defaultData;
   }
-};
+  
+  // Varsayılan veriyi döndür ve kaydet
+  saveData(defaultData);
+  return defaultData;
+}
 
-// Veriyi dosyaya kaydet
-export const saveData = (data) => {
+// Veriyi kaydet
+export function saveData(data) {
   try {
-    ensureDataDir();
-    
-    const dataToSave = {
-      ...data,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    fs.writeFileSync(DATA_FILE, JSON.stringify(dataToSave, null, 2));
-    console.log(`Veri kaydedildi: ${data.urunler.length} ürün, ${data.cikisGecmisi.length} çıkış kaydı`);
-    return true;
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    console.log('Veri kaydedildi:', Object.keys(data).length, 'kategori');
   } catch (error) {
     console.error('Veri kaydetme hatası:', error);
-    return false;
   }
-};
+}
 
-// Ürün ekleme/güncelleme
-export const updateUrunler = (yeniUrunler) => {
+// Ürünleri güncelle
+export function updateUrunler(urunler) {
   const data = loadData();
-  data.urunler = yeniUrunler;
+  data.urunler = urunler;
   saveData(data);
-  return data.urunler;
-};
+}
 
-// Çıkış kaydı ekleme
-export const addCikisKaydi = (koli_no, urun_barkod, urun_adi, adet) => {
+// Kullanıcıları güncelle
+export function updateKullanicilar(kullanicilar) {
   const data = loadData();
-  
-  const yeniKayit = {
-    id: Date.now(),
-    koli_no: koli_no,
-    urun_barkod: urun_barkod,
-    urun_adi: urun_adi,
-    adet: adet,
-    tarih: new Date().toISOString().split('T')[0],
-    saat: new Date().toTimeString().split(' ')[0]
-  };
-  
-  data.cikisGecmisi.unshift(yeniKayit);
-  
-  // Son 1000 kaydı tut
-  if (data.cikisGecmisi.length > 1000) {
-    data.cikisGecmisi = data.cikisGecmisi.slice(0, 1000);
-  }
-  
+  data.kullanicilar = kullanicilar;
   saveData(data);
-  console.log('Çıkış kaydı eklendi:', yeniKayit);
-  return yeniKayit;
-};
+}
 
-// Toplama fişi ekleme
-export const addToplamaFisi = (urunler) => {
+// Çıkış geçmişini güncelle
+export function updateCikisGecmisi(cikisGecmisi) {
   const data = loadData();
-  
-  const fisiNo = `TF${Date.now()}`;
-  const toplamAdet = urunler.reduce((sum, urun) => sum + urun.adet, 0);
-  const tarih = new Date().toISOString().split('T')[0];
-
-  const yeniFis = {
-    fisi_no: fisiNo,
-    tarih: tarih,
-    toplam_urun: urunler.length,
-    toplam_adet: toplamAdet,
-    durum: 'tamamlandi',
-    urunler: urunler,
-    olusturma_tarihi: new Date().toISOString()
-  };
-
-  data.toplamaFisleri.unshift(yeniFis);
+  data.cikisGecmisi = cikisGecmisi;
   saveData(data);
-  console.log('Toplama fişi eklendi:', fisiNo);
-  return yeniFis;
-};
+}
 
-// Fiş detayları alma
-export const getFisiDetaylari = (fisiNo) => {
+// Toplama fişlerini güncelle
+export function updateToplamaFisleri(toplamaFisleri) {
   const data = loadData();
-  const fis = data.toplamaFisleri.find(f => f.fisi_no === fisiNo);
-  return fis ? fis.urunler || [] : [];
-};
+  data.toplamaFisleri = toplamaFisleri;
+  saveData(data);
+}
 
-// Veri durumu
-export const getDataStatus = () => {
+// Aktiviteleri güncelle
+export function updateActivities(activities) {
   const data = loadData();
-  return {
-    urunSayisi: data.urunler.length,
-    cikisKayitSayisi: data.cikisGecmisi.length,
-    fisSayisi: data.toplamaFisleri.length,
-    lastUpdated: data.lastUpdated
-  };
-};
+  data.activities = activities;
+  saveData(data);
+}

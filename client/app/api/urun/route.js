@@ -1,13 +1,14 @@
 // Next.js API route - Ürün listesi
-import { urunler as excelUrunler } from './excel-import/route.js';
+import { loadData } from '../data-store.js';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q');
     
-    // Excel import API'sinden ürünleri al
-    let urunler = [...excelUrunler];
+    // Veriyi yükle
+    const data = loadData();
+    let urunler = [...data.urunler];
 
     // Arama filtresi
     if (q && q.trim()) {
