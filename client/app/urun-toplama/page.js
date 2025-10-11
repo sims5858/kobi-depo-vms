@@ -12,74 +12,9 @@ const UrunToplama = () => {
   const [loading, setLoading] = useState(false);
   const [activeKoli, setActiveKoli] = useState(null);
   const [koliUrunleri, setKoliUrunleri] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [toplamaFisleri] = useState([]);
-  const [selectedFisi] = useState(null);
-  const [fisiDetaylari] = useState([]);
-  const [cikisGecmisi, setCikisGecmisi] = useState([]);
-  const [seciliKoliGecmisi, setSeciliKoliGecmisi] = useState(null);
   
 
-  // Toplama fişlerini yükle
-  const loadToplamaFisleri = async (tarih = selectedDate) => {
-    try {
-      console.log('Toplama fişleri yükleniyor, tarih:', tarih);
-      const response = await fetch(`/api/toplama-fisi?tarih=${tarih}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Toplama fişleri yüklendi:', data);
-        setToplamaFisleri(data);
-        // İlk fiş detayını otomatik yükle
-        if (data && data.length > 0) {
-          await loadFisiDetaylari(data[0].fisi_no);
-        } else {
-          setSelectedFisi(null);
-          setFisiDetaylari([]);
-        }
-      } else {
-        console.error('Toplama fişleri yüklenemedi:', response.status);
-      }
-    } catch (error) {
-      console.error('Toplama fişleri yüklenirken hata:', error);
-    }
-  };
 
-  // Toplama fişi detaylarını yükle
-  const loadFisiDetaylari = async (fisiNo) => {
-    try {
-      console.log('Fiş detayları yükleniyor, fiş no:', fisiNo);
-      const response = await fetch(`/api/toplama-fisi/${fisiNo}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Fiş detayları yüklendi:', data);
-        setFisiDetaylari(data);
-        setSelectedFisi(fisiNo);
-      } else {
-        console.error('Fiş detayları yüklenemedi:', response.status);
-      }
-    } catch (error) {
-      console.error('Fiş detayları yüklenirken hata:', error);
-    }
-  };
-
-  // Sayfa yüklendiğinde ve tarih değiştiğinde toplama fişlerini yükle
-  useEffect(() => {
-    loadToplamaFisleri(selectedDate);
-    // Fişsiz çıkış geçmişi (koli bazlı)
-    (async () => {
-      try {
-        const resp = await fetch(`/api/cikis-gecmisi?tarih=${selectedDate}`);
-        if (resp.ok) {
-          const data = await resp.json();
-          setCikisGecmisi(data);
-          const firstKoli = data.length > 0 ? data[0].koli_no : null;
-          setSeciliKoliGecmisi(firstKoli);
-        }
-      } catch (e) {
-        console.error('Çıkış geçmişi yüklenemedi', e);
-      }
-    })();
-  }, [selectedDate]);
 
   // Toplama fişine kaydet (backend beklenen şema: { urunler: [{ barkod, koli_no, adet }] })
   const saveToToplamaFisi = async (urun) => {
@@ -414,9 +349,18 @@ const UrunToplama = () => {
               <Card.Header className="bg-success text-white">
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">✅ Çıkış Yapılan Ürünler</h5>
-                  <Badge bg="light" text="dark" className="fs-6">
-                    Toplam: {toplamUrun} adet
-                  </Badge>
+                  <div className="d-flex align-items-center gap-2">
+                    <Form.Control
+                      type="date"
+                      size="sm"
+                      value={new Date().toISOString().split('T')[0]}
+                      style={{ width: '150px' }}
+                      readOnly
+                    />
+                    <Badge bg="light" text="dark" className="fs-6">
+                      Toplam: {toplamUrun} adet
+                    </Badge>
+                  </div>
                 </div>
               </Card.Header>
               <Card.Body style={{ maxHeight: '600px', overflowY: 'auto' }}>
@@ -488,100 +432,6 @@ const UrunToplama = () => {
           )}
         </Col>
 
-        {/* Sağ taraf - Çıkış Geçmişi (fişsiz görünüm) */}
-        <Col md={6}>
-          <Card className="anim-slide-up delay-1">
-            <Card.Header className="py-2 d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">📊 Çıkış Geçmişi</h6>
-              <div className="d-flex align-items-center">
-                <Form.Control
-                  type="date"
-                  size="sm"
-                  value={selectedDate}
-                  onChange={(e) => {
-                    setSelectedDate(e.target.value);
-                    setSelectedFisi(null);
-                    setFisiDetaylari([]);
-                  }}
-                />
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={() => {
-                    loadToplamaFisleri(selectedDate);
-                    fetch(`/api/cikis-gecmisi?tarih=${selectedDate}`)
-                      .then(r => r.ok ? r.json() : [])
-                      .then(data => {
-                        setCikisGecmisi(data || []);
-                        setSeciliKoliGecmisi(data && data.length ? data[0].koli_no : null);
-                      })
-                      .catch(() => {});
-                  }}
-                  className="ms-2"
-                >
-                  Yenile
-                </Button>
-              </div>
-            </Card.Header>
-            <Card.Body className="py-2">
-              <Row>
-                <Col md={6}>
-                  <h6 className="mb-2" style={{ fontSize: '16px' }}>Koliler</h6>
-                  <div style={{ maxHeight: '520px', overflowY: 'auto' }}>
-                    {cikisGecmisi.length > 0 ? (
-                      [...new Set(cikisGecmisi.map(x => x.koli_no))].map((k, idx) => (
-                        <div
-                          key={idx}
-                          className={`p-2 mb-1 border rounded ${seciliKoliGecmisi === k ? 'bg-primary text-white' : 'bg-light'}`}
-                          style={{ cursor: 'pointer', fontSize: '13px' }}
-                          onClick={() => setSeciliKoliGecmisi(k)}
-                        >
-                          <div className="d-flex justify-content-between">
-                            <strong>{k}</strong>
-                            <span>
-                              {cikisGecmisi.filter(x => x.koli_no === k).reduce((s, x) => s + x.adet, 0)} adet
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted" style={{ fontSize: '14px' }}>Bu tarihte çıkış yapılmamış</p>
-                    )}
-                  </div>
-                </Col>
-                <Col md={6}>
-                  <h6 className="mb-2" style={{ fontSize: '16px' }}>Ürün Detayları</h6>
-                  <div style={{ maxHeight: '520px', overflowY: 'auto' }}>
-                    {seciliKoliGecmisi ? (
-                      <Table size="sm">
-                        <thead>
-                          <tr>
-                            <th style={{ fontSize: '12px' }}>Barkod</th>
-                            <th style={{ fontSize: '12px' }}>Ürün</th>
-                            <th style={{ fontSize: '12px' }}>Adet</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cikisGecmisi
-                            .filter(x => x.koli_no === seciliKoliGecmisi)
-                            .map((detay, i) => (
-                              <tr key={i} style={{ fontSize: '12px' }}>
-                                <td><code style={{ fontSize: '10px' }}>{detay.urun_barkod}</code></td>
-                                <td style={{ fontSize: '11px' }}>{detay.urun_adi}</td>
-                                <td><Badge bg="success" style={{ fontSize: '10px' }}>{detay.adet}</Badge></td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </Table>
-                    ) : (
-                      <p className="text-muted" style={{ fontSize: '14px' }}>Koli seçin</p>
-                    )}
-                  </div>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-        </Col>
       </div>
 
       
