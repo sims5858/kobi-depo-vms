@@ -15,8 +15,10 @@ export async function POST(request) {
     const { urunler: excelUrunler } = body;
 
     console.log('Excel import başladı:', { urun_sayisi: excelUrunler?.length });
+    console.log('Excel verisi örneği:', JSON.stringify(excelUrunler.slice(0, 2), null, 2));
 
     if (!excelUrunler || !Array.isArray(excelUrunler)) {
+      console.error('Excel verisi geçersiz:', excelUrunler);
       return Response.json({ error: 'Ürün listesi gerekli' }, { status: 400 });
     }
 
@@ -78,7 +80,9 @@ export async function POST(request) {
     });
 
     // Veriyi kalıcı olarak kaydet
+    console.log('Veri kaydediliyor...', { eklenen, guncellenen, toplam: urunler.length });
     updateUrunler(urunler);
+    console.log('Veri kaydedildi!');
 
     console.log(`Excel import tamamlandı: { eklenen: ${eklenen}, guncellenen: ${guncellenen}, toplam: ${urunler.length} }`);
 
