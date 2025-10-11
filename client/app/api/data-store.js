@@ -4,7 +4,29 @@
 // Varsayılan veri
 const defaultData = {
   urunler: [],
-  koliler: [],
+  koliler: [
+    {
+      koli_no: 'D1-0001',
+      lokasyon: 'Depo 1 - Raf A',
+      kapasite: 100,
+      durum: 'bos',
+      olusturma_tarihi: new Date().toISOString()
+    },
+    {
+      koli_no: 'D1-0002',
+      lokasyon: 'Depo 1 - Raf B',
+      kapasite: 100,
+      durum: 'bos',
+      olusturma_tarihi: new Date().toISOString()
+    },
+    {
+      koli_no: 'D2-0001',
+      lokasyon: 'Depo 2 - Raf A',
+      kapasite: 100,
+      durum: 'bos',
+      olusturma_tarihi: new Date().toISOString()
+    }
+  ],
   kullanicilar: [
     {
       id: 1,

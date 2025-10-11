@@ -15,6 +15,10 @@ export async function GET(request) {
     const urunler = data.urunler;
     const koliler = data.koliler || [];
     
+    console.log('Toplam ürün sayısı:', urunler.length);
+    console.log('Toplam koli sayısı:', koliler.length);
+    console.log('Koli örnekleri:', koliler.slice(0, 3));
+    
     // Ürün verilerinden koli envanter raporu oluştur
     const koliMap = new Map();
     
@@ -31,6 +35,8 @@ export async function GET(request) {
         olusturma_tarihi: koli.olusturma_tarihi || new Date().toISOString()
       });
     });
+    
+    console.log('Başlangıç koli map boyutu:', koliMap.size);
     
     // Tüm ürünleri işle
     urunler.forEach(urun => {
@@ -118,21 +124,28 @@ export async function GET(request) {
     console.log('Toplam koli sayısı:', koliRaporu.length);
 
     // Filtreleme
+    console.log('Filtreleme öncesi koli sayısı:', koliRaporu.length);
+    console.log('Filtreleme öncesi örnek koliler:', koliRaporu.slice(0, 3));
+    
     if (minAdet) {
       const minAdetNum = parseInt(minAdet);
+      const oncekiSayi = koliRaporu.length;
       koliRaporu = koliRaporu.filter(koli => koli.toplam_adet >= minAdetNum);
-      console.log(`Min adet filtresi (${minAdetNum}): ${koliRaporu.length} koli kaldı`);
+      console.log(`Min adet filtresi (${minAdetNum}): ${oncekiSayi} -> ${koliRaporu.length} koli kaldı`);
     }
 
     if (maxAdet && maxAdet !== '999999') {
       const maxAdetNum = parseInt(maxAdet);
+      const oncekiSayi = koliRaporu.length;
       koliRaporu = koliRaporu.filter(koli => koli.toplam_adet <= maxAdetNum);
-      console.log(`Max adet filtresi (${maxAdetNum}): ${koliRaporu.length} koli kaldı`);
+      console.log(`Max adet filtresi (${maxAdetNum}): ${oncekiSayi} -> ${koliRaporu.length} koli kaldı`);
     }
 
     if (sadeceBos === 'true') {
+      const oncekiSayi = koliRaporu.length;
       koliRaporu = koliRaporu.filter(koli => koli.toplam_adet === 0);
-      console.log(`Sadece boş koliler: ${koliRaporu.length} koli kaldı`);
+      console.log(`Sadece boş koliler: ${oncekiSayi} -> ${koliRaporu.length} koli kaldı`);
+      console.log('Boş koli örnekleri:', koliRaporu.slice(0, 3));
     }
 
     console.log('Filtrelenmiş koli sayısı:', koliRaporu.length);
