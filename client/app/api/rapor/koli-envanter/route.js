@@ -13,9 +13,24 @@ export async function GET(request) {
     // Veriyi yükle
     const data = loadData();
     const urunler = data.urunler;
+    const koliler = data.koliler || [];
     
     // Ürün verilerinden koli envanter raporu oluştur
     const koliMap = new Map();
+    
+    // Önce tüm kolileri ekle (boş olanlar dahil)
+    koliler.forEach(koli => {
+      koliMap.set(koli.koli_no, {
+        koli_no: koli.koli_no,
+        lokasyon: koli.lokasyon || koli.koli_no,
+        kapasite: 100,
+        durum: 'bos',
+        urun_sayisi: 0,
+        toplam_adet: 0,
+        doluluk_orani: 0,
+        olusturma_tarihi: koli.olusturma_tarihi || new Date().toISOString()
+      });
+    });
     
     // Tüm ürünleri işle
     urunler.forEach(urun => {
@@ -116,7 +131,7 @@ export async function GET(request) {
     }
 
     if (sadeceBos === 'true') {
-      koliRaporu = koliRaporu.filter(koli => koli.durum === 'bos');
+      koliRaporu = koliRaporu.filter(koli => koli.toplam_adet === 0);
       console.log(`Sadece boş koliler: ${koliRaporu.length} koli kaldı`);
     }
 

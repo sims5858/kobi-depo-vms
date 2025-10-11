@@ -21,26 +21,31 @@ const Raporlar = () => {
   }, []);
 
   const loadKoliEnvanterRaporu = async () => {
+    await loadKoliEnvanterRaporuWithFilters(filtreMinAdet, filtreMaxAdet, sadeceBos);
+  };
+
+  const loadKoliEnvanterRaporuWithFilters = async (minAdet, maxAdet, bosFiltre) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       
       // Min adet filtresi
-      if (filtreMinAdet && filtreMinAdet > 0) {
-        params.set('min_adet', String(filtreMinAdet));
+      if (minAdet && minAdet > 0) {
+        params.set('min_adet', String(minAdet));
       }
       
       // Max adet filtresi
-      if (filtreMaxAdet && filtreMaxAdet < 999999) {
-        params.set('max_adet', String(filtreMaxAdet));
+      if (maxAdet && maxAdet < 999999) {
+        params.set('max_adet', String(maxAdet));
       }
       
       // Sadece boş koliler
-      if (sadeceBos) {
+      if (bosFiltre) {
         params.set('sadece_bos', 'true');
       }
 
       console.log('API çağrısı:', `/api/rapor/koli-envanter?${params}`);
+      console.log('Filtre parametreleri:', { minAdet, maxAdet, bosFiltre });
       
       const response = await fetch(`/api/rapor/koli-envanter?${params}`);
       if (!response.ok) {
@@ -148,34 +153,39 @@ const Raporlar = () => {
                   <Form.Group>
                     <Form.Label>Hızlı Filtreler</Form.Label>
                     <Form.Select
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const value = e.target.value;
+                        let newMinAdet, newMaxAdet, newSadeceBos;
+                        
                         if (value === 'bos') {
-                          setFiltreMinAdet(0);
-                          setFiltreMaxAdet(0);
-                          setSadeceBos(true);
+                          newMinAdet = 0;
+                          newMaxAdet = 0;
+                          newSadeceBos = true;
                         } else if (value === 'az') {
-                          setFiltreMinAdet(1);
-                          setFiltreMaxAdet(10);
-                          setSadeceBos(false);
+                          newMinAdet = 1;
+                          newMaxAdet = 10;
+                          newSadeceBos = false;
                         } else if (value === 'orta') {
-                          setFiltreMinAdet(11);
-                          setFiltreMaxAdet(50);
-                          setSadeceBos(false);
+                          newMinAdet = 11;
+                          newMaxAdet = 50;
+                          newSadeceBos = false;
                         } else if (value === 'cok') {
-                          setFiltreMinAdet(51);
-                          setFiltreMaxAdet(999999);
-                          setSadeceBos(false);
+                          newMinAdet = 51;
+                          newMaxAdet = 999999;
+                          newSadeceBos = false;
                         } else {
-                          setFiltreMinAdet(0);
-                          setFiltreMaxAdet(999999);
-                          setSadeceBos(false);
+                          newMinAdet = 0;
+                          newMaxAdet = 999999;
+                          newSadeceBos = false;
                         }
                         
+                        // State'i güncelle
+                        setFiltreMinAdet(newMinAdet);
+                        setFiltreMaxAdet(newMaxAdet);
+                        setSadeceBos(newSadeceBos);
+                        
                         // Hızlı filtre seçildiğinde otomatik uygula
-                        setTimeout(() => {
-                          loadKoliEnvanterRaporu();
-                        }, 100);
+                        await loadKoliEnvanterRaporuWithFilters(newMinAdet, newMaxAdet, newSadeceBos);
                       }}
                     >
                       <option value="">Tümü</option>
