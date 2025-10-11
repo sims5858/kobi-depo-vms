@@ -1,5 +1,5 @@
 // Next.js API route - Koli listesi
-import { loadData } from '../data-store.js';
+import { loadData, saveData } from '../data-store.js';
 
 export async function GET(request) {
   try {
@@ -112,6 +112,64 @@ export async function GET(request) {
     console.log('Toplam koli sayısı:', koliler.length);
     return Response.json(koliler);
   } catch (error) {
+    console.error('Koli listesi API hatası:', error);
+    return Response.json({ error: 'Sunucu hatası' }, { status: 500 });
+  }
+}
+
+// Yeni koli oluştur
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    const { koli_no, lokasyon, durum = 'aktif' } = body;
+    
+    console.log('Yeni koli oluşturuluyor:', { koli_no, lokasyon, durum });
+    
+    if (!koli_no || !lokasyon) {
+      return Response.json({ error: 'Koli numarası ve lokasyon gerekli' }, { status: 400 });
+    }
+    
+    // Veriyi yükle
+    const data = loadData();
+    
+    // Koli zaten var mı kontrol et
+    const existingKoli = data.koliler?.find(k => k.koli_no === koli_no);
+    if (existingKoli) {
+      return Response.json({ error: 'Bu koli numarası zaten kullanılıyor' }, { status: 400 });
+    }
+    
+    // Yeni koli oluştur
+    const yeniKoli = {
+      id: koli_no,
+      koli_no,
+      lokasyon,
+      durum,
+      kapasite: 100,
+      urun_sayisi: 0,
+      toplam_adet: 0,
+      doluluk_orani: 0,
+      olusturma_tarihi: new Date().toISOString()
+    };
+    
+    // Koliler listesine ekle
+    if (!data.koliler) {
+      data.koliler = [];
+    }
+    data.koliler.push(yeniKoli);
+    
+    // Veriyi kaydet
+    saveData(data);
+    
+    console.log('Koli başarıyla oluşturuldu:', yeniKoli);
+    
+    return Response.json({
+      success: true,
+      message: 'Koli başarıyla oluşturuldu',
+      koli: yeniKoli
+    });
+    
+  } catch (error) {
+    console.error('Koli oluşturma API hatası:', error);
     return Response.json({ error: 'Sunucu hatası' }, { status: 500 });
   }
 }

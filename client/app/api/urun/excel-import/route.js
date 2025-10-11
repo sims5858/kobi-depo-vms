@@ -24,6 +24,7 @@ export async function POST(request) {
 
     // Mevcut ürünleri al
     const urunler = getUrunler();
+    console.log('Mevcut ürün sayısı:', urunler.length);
     let eklenen = 0;
     let guncellenen = 0;
 

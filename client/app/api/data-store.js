@@ -4,6 +4,7 @@
 // Varsayılan veri
 const defaultData = {
   urunler: [],
+  koliler: [],
   kullanicilar: [
     {
       id: 1,
