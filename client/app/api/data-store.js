@@ -1,8 +1,5 @@
-// Kalıcı veri yönetimi sistemi
-import fs from 'fs';
-import path from 'path';
-
-const DATA_FILE = path.join(process.cwd(), 'vms-data.json');
+// Memory-based veri yönetimi sistemi (Vercel uyumlu)
+// Vercel'de file system yazma çalışmadığı için memory'de tutuyoruz
 
 // Varsayılan veri
 const defaultData = {
@@ -24,30 +21,19 @@ const defaultData = {
   activities: []
 };
 
+// Memory'de veri tutuyoruz
+let memoryData = { ...defaultData };
+
 // Veriyi yükle
 export function loadData() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const data = fs.readFileSync(DATA_FILE, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.error('Veri yükleme hatası:', error);
-  }
-  
-  // Varsayılan veriyi döndür ve kaydet
-  saveData(defaultData);
-  return defaultData;
+  console.log('Veri yüklendi:', Object.keys(memoryData).length, 'kategori');
+  return memoryData;
 }
 
-// Veriyi kaydet
+// Veriyi kaydet (memory'de)
 export function saveData(data) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-    console.log('Veri kaydedildi:', Object.keys(data).length, 'kategori');
-  } catch (error) {
-    console.error('Veri kaydetme hatası:', error);
-  }
+  memoryData = { ...data };
+  console.log('Veri kaydedildi (memory):', Object.keys(memoryData).length, 'kategori');
 }
 
 // Ürünleri güncelle
