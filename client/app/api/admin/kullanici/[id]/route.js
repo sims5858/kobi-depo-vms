@@ -1,17 +1,5 @@
 // Next.js API route - Admin kullanıcı düzenleme ve silme
-// Kullanıcı verilerini doğrudan burada tanımlayalım
-let kullanicilar = [
-  {
-    id: 1,
-    kullanici_adi: 'admin',
-    ad_soyad: 'Admin User',
-    email: 'admin@vms.com',
-    sifre: 'admin123',
-    rol: 'admin',
-    aktif: true,
-    olusturma_tarihi: new Date().toISOString()
-  }
-];
+import { loadData, updateKullanicilar } from '../../../data-store.js';
 
 export async function PUT(request, { params }) {
   try {
@@ -19,10 +7,16 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const { kullanici_adi, email, sifre, ad_soyad, rol } = body;
 
+    console.log('Kullanıcı düzenleniyor:', { id, kullanici_adi, email, rol });
+
     // Basit validasyon
     if (!kullanici_adi || !email || !ad_soyad) {
       return Response.json({ error: 'Tüm alanlar zorunludur' }, { status: 400 });
     }
+
+    // Veriyi yükle
+    const data = loadData();
+    const kullanicilar = data.kullanicilar || [];
 
     // Kullanıcıyı bul
     const kullaniciIndex = kullanicilar.findIndex(k => k.id === parseInt(id));
@@ -42,9 +36,15 @@ export async function PUT(request, { params }) {
       kullanici_adi,
       ad_soyad,
       email,
-      rol: rol || 'kullanici',
+      sifre: sifre || kullanicilar[kullaniciIndex].sifre, // Şifre değiştirilmediyse eski şifreyi koru
+      rol: rol || kullanicilar[kullaniciIndex].rol,
       guncelleme_tarihi: new Date().toISOString()
     };
+
+    // Veriyi kaydet
+    updateKullanicilar(kullanicilar);
+
+    console.log('Kullanıcı başarıyla güncellendi:', kullanicilar[kullaniciIndex]);
 
     return Response.json({
       success: true,
@@ -52,6 +52,7 @@ export async function PUT(request, { params }) {
       user: kullanicilar[kullaniciIndex]
     });
   } catch (error) {
+    console.error('Kullanıcı güncelleme hatası:', error);
     return Response.json({ error: 'Sunucu hatası' }, { status: 500 });
   }
 }
@@ -59,25 +60,39 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
+    
+    console.log('Kullanıcı siliniyor:', { id });
 
-    // Admin kullanıcısını silmeyi engelle
-    if (id === '1') {
-      return Response.json({ error: 'Admin kullanıcısı silinemez' }, { status: 400 });
-    }
+    // Veriyi yükle
+    const data = loadData();
+    const kullanicilar = data.kullanicilar || [];
 
-    // Kullanıcıyı bul ve sil
+    // Kullanıcıyı bul
     const kullaniciIndex = kullanicilar.findIndex(k => k.id === parseInt(id));
     if (kullaniciIndex === -1) {
       return Response.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
     }
 
-    kullanicilar.splice(kullaniciIndex, 1);
+    // Admin kullanıcısını silmeyi engelle
+    if (kullanicilar[kullaniciIndex].rol === 'admin') {
+      return Response.json({ error: 'Admin kullanıcısı silinemez' }, { status: 400 });
+    }
+
+    // Kullanıcıyı sil
+    const silinenKullanici = kullanicilar.splice(kullaniciIndex, 1)[0];
+
+    // Veriyi kaydet
+    updateKullanicilar(kullanicilar);
+
+    console.log('Kullanıcı başarıyla silindi:', silinenKullanici);
 
     return Response.json({
       success: true,
-      message: 'Kullanıcı başarıyla silindi'
+      message: 'Kullanıcı başarıyla silindi',
+      user: silinenKullanici
     });
   } catch (error) {
+    console.error('Kullanıcı silme hatası:', error);
     return Response.json({ error: 'Sunucu hatası' }, { status: 500 });
   }
 }

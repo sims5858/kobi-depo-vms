@@ -1,41 +1,14 @@
 // Next.js API route - Admin kullanıcı yönetimi
-let kullanicilar = [
-  {
-    id: 1,
-    kullanici_adi: 'admin',
-    ad_soyad: 'Admin User',
-    email: 'admin@vms.com',
-    sifre: 'admin123',
-    rol: 'admin',
-    aktif: true,
-    olusturma_tarihi: new Date().toISOString()
-  },
-  {
-    id: 2,
-    kullanici_adi: 'operator1',
-    ad_soyad: 'Operatör Kullanıcı',
-    email: 'operator@vms.com',
-    sifre: 'operator123',
-    rol: 'operator',
-    aktif: true,
-    olusturma_tarihi: new Date().toISOString()
-  },
-  {
-    id: 3,
-    kullanici_adi: 'user1',
-    ad_soyad: 'Normal Kullanıcı',
-    email: 'user@vms.com',
-    sifre: 'user123',
-    rol: 'kullanici',
-    aktif: true,
-    olusturma_tarihi: new Date().toISOString()
-  }
-];
+import { loadData, updateKullanicilar } from '../../data-store.js';
 
 export async function GET() {
   try {
+    const data = loadData();
+    const kullanicilar = data.kullanicilar || [];
+    console.log('Kullanıcılar yüklendi:', kullanicilar.length);
     return Response.json(kullanicilar);
   } catch (error) {
+    console.error('Kullanıcılar yükleme hatası:', error);
     return Response.json({ error: 'Sunucu hatası' }, { status: 500 });
   }
 }
@@ -49,6 +22,10 @@ export async function POST(request) {
     if (!kullanici_adi || !email || !sifre || !ad_soyad) {
       return Response.json({ error: 'Tüm alanlar zorunludur' }, { status: 400 });
     }
+
+    // Veriyi yükle
+    const data = loadData();
+    const kullanicilar = data.kullanicilar || [];
 
     // Kullanıcı adı kontrolü
     const mevcutKullanici = kullanicilar.find(k => k.kullanici_adi === kullanici_adi);
@@ -70,6 +47,9 @@ export async function POST(request) {
 
     // Listeye ekle
     kullanicilar.push(yeniKullanici);
+    
+    // Veriyi kaydet
+    updateKullanicilar(kullanicilar);
 
     return Response.json({
       success: true,

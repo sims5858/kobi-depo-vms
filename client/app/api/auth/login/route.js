@@ -1,38 +1,15 @@
 // Next.js API route - Login
+import { loadData } from '../../data-store.js';
+
 export async function POST(request) {
   try {
     const { kullanici_adi, sifre } = await request.json();
     
-    // Basit kullanıcı listesi
-    const kullanicilar = [
-      {
-        id: 1,
-        kullanici_adi: 'admin',
-        ad_soyad: 'Admin User',
-        email: 'admin@vms.com',
-        sifre: 'admin123',
-        rol: 'admin',
-        aktif: true
-      },
-      {
-        id: 2,
-        kullanici_adi: 'operator1',
-        ad_soyad: 'Operatör Kullanıcı',
-        email: 'operator@vms.com',
-        sifre: 'operator123',
-        rol: 'operator',
-        aktif: true
-      },
-      {
-        id: 3,
-        kullanici_adi: 'user1',
-        ad_soyad: 'Normal Kullanıcı',
-        email: 'user@vms.com',
-        sifre: 'user123',
-        rol: 'kullanici',
-        aktif: true
-      }
-    ];
+    console.log('Login denemesi:', { kullanici_adi });
+    
+    // Veriyi yükle
+    const data = loadData();
+    const kullanicilar = data.kullanicilar || [];
 
     // Kullanıcıyı bul
     const kullanici = kullanicilar.find(k => 
