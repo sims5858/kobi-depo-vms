@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Badge, Row, Col, Alert } from 'react-bootstrap';
-import { BiPlus, BiEdit, BiTrash, BiKey, BiUser, BiShield, BiCheck, BiSave } from 'react-icons/bi';
-import Link from 'next/link';
+import { BiPlus, BiEdit, BiTrash, BiKey, BiUser, BiShield, BiCheck } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 
 const AdminPanel = () => {
@@ -129,12 +128,6 @@ const AdminPanel = () => {
           <h1 className="h3 mb-0">CoreTrack V3 Admin Panel</h1>
         </div>
         <div className="d-flex gap-2">
-          <Link href="/admin/yedek">
-            <Button variant="success" size="sm" className="d-flex align-items-center">
-              <BiSave className="me-1" />
-              Yedek Yönetimi
-            </Button>
-          </Link>
           <Button variant="primary" onClick={() => setShowModal(true)}>
             <BiPlus className="me-1" />
             Yeni Kullanıcı
