@@ -252,33 +252,69 @@ const UrunYonetimi = () => {
   // Excel export fonksiyonu
   const handleExcelExport = () => {
     try {
-      // Export için veri hazırla
-      const exportData = filteredUrunler.map(urun => ({
-        'Barkod': urun.barkod,
-        'Ürün Adı': urun.urun_adi,
-        'Açıklama': urun.aciklama || '',
-        'Birim': urun.birim || 'adet',
-        'Beden': urun.beden || '',
-        'Stok Adet': urun.stok_adet || 0,
-        'Lokasyon': urun.lokasyon || '',
-        'Koli Detayları': urun.koli_detaylari ? 
-          Object.entries(urun.koli_detaylari)
-            .map(([koli, adet]) => `${koli}:${adet}`)
-            .join(', ') : '',
-        'Oluşturma Tarihi': urun.olusturma_tarihi ? 
-          new Date(urun.olusturma_tarihi).toLocaleDateString('tr-TR') : ''
-      }));
+      let exportData;
+      let fileName;
+      
+      if (filteredUrunler.length > 0) {
+        // Mevcut ürünleri export et
+        exportData = filteredUrunler.map(urun => ({
+          'Barkod': urun.barkod,
+          'Ürün Adı': urun.urun_adi,
+          'Açıklama': urun.aciklama || '',
+          'Birim': urun.birim || 'adet',
+          'Beden': urun.beden || '',
+          'Stok Adet': urun.stok_adet || 0,
+          'Lokasyon': urun.lokasyon || '',
+          'Koli Detayları': urun.koli_detaylari ? 
+            Object.entries(urun.koli_detaylari)
+              .map(([koli, adet]) => `${koli}:${adet}`)
+              .join(', ') : '',
+          'Oluşturma Tarihi': urun.olusturma_tarihi ? 
+            new Date(urun.olusturma_tarihi).toLocaleDateString('tr-TR') : ''
+        }));
+        fileName = `urun-listesi-${new Date().toISOString().split('T')[0]}.xlsx`;
+      } else {
+        // Örnek format oluştur
+        exportData = [
+          {
+            'Barkod': '1234567890123',
+            'Ürün Adı': 'Örnek Ürün Adı',
+            'Açıklama': 'Ürün açıklaması',
+            'Birim': 'adet',
+            'Beden': 'M',
+            'Stok Adet': 100,
+            'Lokasyon': 'D1-0001, D1-0002',
+            'Koli Detayları': 'D1-0001:50, D1-0002:50',
+            'Oluşturma Tarihi': new Date().toLocaleDateString('tr-TR')
+          },
+          {
+            'Barkod': '9876543210987',
+            'Ürün Adı': 'Başka Bir Ürün',
+            'Açıklama': 'İkinci ürün örneği',
+            'Birim': 'adet',
+            'Beden': 'L',
+            'Stok Adet': 75,
+            'Lokasyon': 'D2-0001',
+            'Koli Detayları': 'D2-0001:75',
+            'Oluşturma Tarihi': new Date().toLocaleDateString('tr-TR')
+          }
+        ];
+        fileName = `urun-format-ornegi-${new Date().toISOString().split('T')[0]}.xlsx`;
+      }
 
       // Excel dosyası oluştur
       const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Ürün Listesi');
+      XLSX.utils.book_append_sheet(wb, ws, filteredUrunler.length > 0 ? 'Ürün Listesi' : 'Format Örneği');
 
       // Dosyayı indir
-      const fileName = `urun-listesi-${new Date().toISOString().split('T')[0]}.xlsx`;
       XLSX.writeFile(wb, fileName);
 
-      toast.success(`${exportData.length} ürün Excel dosyası olarak indirildi`);
+      if (filteredUrunler.length > 0) {
+        toast.success(`${exportData.length} ürün Excel dosyası olarak indirildi`);
+      } else {
+        toast.success('Excel format örneği indirildi. Bu dosyayı referans alarak ürünlerinizi ekleyebilirsiniz.');
+      }
     } catch (error) {
       console.error('Excel export hatası:', error);
       toast.error('Excel dosyası oluşturulurken hata oluştu');
@@ -475,18 +511,16 @@ const UrunYonetimi = () => {
               </div>
             </div>
             <div className="d-flex gap-1">
-              {filteredUrunler.length > 0 && (
-                <Button 
-                  variant="outline-success"
-                  size="sm"
-                  onClick={handleExcelExport}
-                  className="d-flex align-items-center"
-                  title="Ürün listesini Excel olarak indir"
-                >
-                  <BiDownload className="me-1" />
-                  Excel İndir
-                </Button>
-              )}
+              <Button 
+                variant="outline-success"
+                size="sm"
+                onClick={handleExcelExport}
+                className="d-flex align-items-center"
+                title="Ürün listesini Excel olarak indir (Format örneği)"
+              >
+                <BiDownload className="me-1" />
+                Excel İndir
+              </Button>
               {filteredUrunler.length > 0 && (
                 <Button 
                   variant={selectedUrunler.length === filteredUrunler.length ? "outline-secondary" : "outline-primary"}
