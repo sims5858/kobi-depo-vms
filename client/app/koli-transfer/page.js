@@ -591,13 +591,54 @@ const KoliTransfer = () => {
 
                   <Button 
                     variant="success" 
-                    className="w-100"
+                    className="w-100 mb-3"
                     onClick={handleTransferTamamla}
                     disabled={!girenKoli || transferUrunleri.length === 0}
                   >
                     <BiSave className="me-1" />
                     Transferi Tamamla
                   </Button>
+
+                  {/* Ürün Barkodu Girişi */}
+                  <hr className="my-3" />
+                  <h6 className="text-primary mb-3">
+                    <BiCamera className="me-2" />
+                    Ürün Barkodu Girişi
+                  </h6>
+                  
+                  <Form.Group className="mb-3">
+                    <Form.Label>Transfer Edilecek Ürün Barkodu</Form.Label>
+                    <div className="input-group">
+                      <Form.Control
+                        type="text"
+                        value={barkodInput}
+                        onChange={(e) => setBarkodInput(e.target.value)}
+                        placeholder="Barkodu okutun veya yazın"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleBarkodGir();
+                          }
+                        }}
+                      />
+                      <Button 
+                        variant="primary" 
+                        onClick={handleBarkodGir}
+                        disabled={!barkodInput.trim()}
+                      >
+                        <BiCamera />
+                      </Button>
+                    </div>
+                    <Form.Text className="text-muted">
+                      Barkodu okutun - 8+ karakter girildiğinde otomatik işlenir
+                    </Form.Text>
+                  </Form.Group>
+
+                  <Alert variant="info" className="small">
+                    <strong>Nasıl Kullanılır:</strong><br />
+                    1. Çıkan koli numarasını girin<br />
+                    2. Bu alana ürün barkodunu okutun<br />
+                    3. Ürün otomatik olarak transfer listesine eklenir
+                  </Alert>
                 </>
               ) : (
                 <>
@@ -896,124 +937,8 @@ const KoliTransfer = () => {
       </Row>
 
       <Row>
-        {/* Barkod Girişi ve Transfer Listesi */}
+        {/* Transfer Listesi */}
         <Col lg={12}>
-          <Row>
-            {/* Barkod Girişi */}
-            <Col lg={6}>
-              <Card className="mb-4">
-                <Card.Header>
-                  <h5 className="mb-0">
-                    <BiCamera className="me-2" />
-                    Ürün Barkodu Girişi
-                    {transferMode === 'multiple' && (
-                      <Badge bg="secondary" className="ms-2">Çoklu Mod</Badge>
-                    )}
-                  </h5>
-                </Card.Header>
-                <Card.Body>
-                  {transferMode === 'single' ? (
-                    <>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Transfer Edilecek Ürün Barkodu</Form.Label>
-                        <div className="input-group">
-                          <Form.Control
-                            type="text"
-                            value={barkodInput}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setBarkodInput(value);
-                              
-                              // Barkod uzunluğu 8 veya daha fazla ise otomatik işle
-                              if (value.length >= 8 && cikanKoli.trim()) {
-                                setTimeout(() => {
-                                  handleBarkodGir();
-                                }, 100); // Kısa bir gecikme ile
-                              }
-                            }}
-                            placeholder="Barkodu okutun veya yazın"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleBarkodGir();
-                              }
-                            }}
-                            autoFocus
-                          />
-                          <Button 
-                            variant="primary" 
-                            onClick={handleBarkodGir}
-                            disabled={!barkodInput.trim() || !cikanKoli.trim()}
-                          >
-                            <BiCamera />
-                          </Button>
-                        </div>
-                        <Form.Text className="text-muted">
-                          Barkodu okutun - 8+ karakter girildiğinde otomatik işlenir
-                        </Form.Text>
-                      </Form.Group>
-
-                      <Alert variant="info" className="small">
-                        <strong>Nasıl Kullanılır:</strong><br />
-                        1. Çıkan koli numarasını girin<br />
-                        2. Bu alana ürün barkodunu okutun<br />
-                        3. Ürün otomatik olarak transfer listesine eklenir
-                      </Alert>
-                    </>
-                  ) : (
-                    <>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Transfer Edilecek Ürün Barkodu</Form.Label>
-                        <div className="input-group">
-                          <Form.Control
-                            type="text"
-                            value={barkodInput}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setBarkodInput(value);
-                              
-                              // Barkod uzunluğu 8 veya daha fazla ise otomatik işle
-                              if (value.length >= 8 && selectedKoliler.length > 0) {
-                                setTimeout(() => {
-                                  handleBarkodGir();
-                                }, 100); // Kısa bir gecikme ile
-                              }
-                            }}
-                            placeholder="Barkodu okutun veya yazın"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleBarkodGir();
-                              }
-                            }}
-                            autoFocus
-                          />
-                          <Button 
-                            variant="primary" 
-                            onClick={handleBarkodGir}
-                            disabled={!barkodInput.trim() || selectedKoliler.length === 0}
-                          >
-                            <BiCamera />
-                          </Button>
-                        </div>
-                        <Form.Text className="text-muted">
-                          Barkodu okutun - 8+ karakter girildiğinde otomatik işlenir
-                        </Form.Text>
-                      </Form.Group>
-
-                      <Alert variant="info" className="small">
-                        <strong>Çoklu Koli Transfer Modu:</strong><br />
-                        1. Kaynak kolileri seçin<br />
-                        2. Ürünleri yükleyin<br />
-                        3. Bu alana ürün barkodunu okutun<br />
-                        4. Ürün otomatik olarak transfer listesine eklenir
-                      </Alert>
-                    </>
-                  )}
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Transfer Listesi */}
-            <Col lg={6}>
               <Card>
                 <Card.Header>
                   <h5 className="mb-0">
