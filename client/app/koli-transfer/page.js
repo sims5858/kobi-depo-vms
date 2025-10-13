@@ -22,6 +22,7 @@ const KoliTransfer = () => {
   const [availableKoliler, setAvailableKoliler] = useState([]);
   const [cokluTransferUrunleri, setCokluTransferUrunleri] = useState([]);
   const [koliBarkodInput, setKoliBarkodInput] = useState('');
+  const [koliArama, setKoliArama] = useState('');
 
   const loadKoliUrunleri = async (koliNo) => {
     try {
@@ -113,6 +114,11 @@ const KoliTransfer = () => {
     setSelectedKoliler(prev => prev.filter(k => k !== koliNo));
     toast.info(`${koliNo} numaralı koli seçimden kaldırıldı`);
   };
+
+  // Koli arama fonksiyonu
+  const filteredKoliler = availableKoliler.filter(koliNo => 
+    koliNo.toLowerCase().includes(koliArama.toLowerCase())
+  );
 
   // Çoklu koli transfer için ürünleri yükle
   const loadCokluKoliUrunleri = async () => {
@@ -634,10 +640,24 @@ const KoliTransfer = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
+                    <Form.Label>Koli Arama</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={koliArama}
+                      onChange={(e) => setKoliArama(e.target.value)}
+                      placeholder="Koli numarası ile arayın..."
+                      size="sm"
+                    />
+                    <Form.Text className="text-muted">
+                      Koli numarası yazarak filtreleyin
+                    </Form.Text>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
                     <Form.Label>Manuel Koli Seçimi (Opsiyonel)</Form.Label>
                     <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '0.375rem', padding: '10px' }}>
-                      {availableKoliler.length > 0 ? (
-                        availableKoliler.map(koliNo => (
+                      {filteredKoliler.length > 0 ? (
+                        filteredKoliler.map(koliNo => (
                           <Form.Check
                             key={koliNo}
                             type="checkbox"
@@ -648,12 +668,23 @@ const KoliTransfer = () => {
                             className="mb-2"
                           />
                         ))
+                      ) : availableKoliler.length > 0 ? (
+                        <div className="text-center text-muted py-2">
+                          <small>Arama kriterine uygun koli bulunamadı</small>
+                        </div>
                       ) : (
                         <div className="text-center text-muted py-2">
                           <small>Koli listesi yükleniyor...</small>
                         </div>
                       )}
                     </div>
+                    {koliArama && (
+                      <div className="mt-2">
+                        <small className="text-muted">
+                          {filteredKoliler.length} koli bulundu (Toplam: {availableKoliler.length})
+                        </small>
+                      </div>
+                    )}
                   </Form.Group>
 
                   <Button 
