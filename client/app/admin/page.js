@@ -132,7 +132,6 @@ const AdminPanel = () => {
             <p className="text-muted mb-0">Kullanıcı yönetimi ve sistem ayarları</p>
           </div>
         </div>
-        </div>
         <div className="d-flex gap-2">
           <Button variant="primary" onClick={() => setShowModal(true)}>
             <BiPlus className="me-1" />
