@@ -125,11 +125,7 @@ export default function RootLayout({ children }) {
                 onMobileClose={() => setSidebarMobileOpen(false)}
               />
               <div
-                className="main-content flex-grow-1"
-                style={{
-                  marginLeft: sidebarCollapsed ? 60 : 250,
-                  transition: 'margin-left 0.3s ease'
-                }}
+                className={`main-content flex-grow-1 ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
               >
                 {children}
               </div>

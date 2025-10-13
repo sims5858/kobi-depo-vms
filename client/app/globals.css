@@ -99,10 +99,18 @@
   margin-right: 0;
 }
 
+/* Collapsed sidebar için main content */
+.main-content.sidebar-collapsed {
+  margin-left: 60px;
+}
+
 /* Main content */
 .main-content {
   background-color: #f8f9fa;
   min-height: calc(100vh - 56px);
+  margin-left: 250px; /* sidebar genişliği */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
 }
 
 /* Page transitions */
