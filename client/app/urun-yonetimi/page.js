@@ -455,7 +455,15 @@ const UrunYonetimi = () => {
   return (
     <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Ürün Yönetimi</h1>
+        <div className="d-flex align-items-center">
+          <div className="bg-primary text-white rounded p-2 me-3">
+            <BiTag size={24} />
+          </div>
+          <div>
+            <h1 className="h3 mb-0 text-primary">Ürün Yönetimi</h1>
+            <p className="text-muted mb-0">Ürün ekleme, düzenleme ve silme işlemleri</p>
+          </div>
+        </div>
       </div>
 
       <Alert variant="info" className="mb-4">

@@ -93,7 +93,15 @@ const Raporlar = () => {
   return (
     <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Raporlar</h1>
+        <div className="d-flex align-items-center">
+          <div className="bg-primary text-white rounded p-2 me-3">
+            <BiTrendingUp size={24} />
+          </div>
+          <div>
+            <h1 className="h3 mb-0 text-primary">Raporlar</h1>
+            <p className="text-muted mb-0">Koli envanter ve boş koli raporları</p>
+          </div>
+        </div>
         <Badge bg="success" className="fs-6">
           <BiTrendingUp className="me-1" />
           Analiz ve Raporlar

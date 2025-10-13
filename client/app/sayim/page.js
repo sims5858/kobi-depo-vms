@@ -116,7 +116,15 @@ const Sayim = () => {
   return (
     <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Envanter Sayımı</h1>
+        <div className="d-flex align-items-center">
+          <div className="bg-primary text-white rounded p-2 me-3">
+            <BiClipboard size={24} />
+          </div>
+          <div>
+            <h1 className="h3 mb-0 text-primary">Envanter Sayımı</h1>
+            <p className="text-muted mb-0">Koli ve ürün sayım işlemleri</p>
+          </div>
+        </div>
         <Badge bg="info" className="fs-6">
           <BiClipboard className="me-1" />
           Fiziksel Sayım

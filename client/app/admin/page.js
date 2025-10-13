@@ -124,8 +124,14 @@ const AdminPanel = () => {
     <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex align-items-center">
-          <img src="/logo.svg" alt="CoreTrack V3" width="32" height="32" className="me-2" />
-          <h1 className="h3 mb-0">CoreTrack V3 Admin Panel</h1>
+          <div className="bg-primary text-white rounded p-2 me-3">
+            <BiShield size={24} />
+          </div>
+          <div>
+            <h1 className="h3 mb-0 text-primary">Admin Panel</h1>
+            <p className="text-muted mb-0">Kullanıcı yönetimi ve sistem ayarları</p>
+          </div>
+        </div>
         </div>
         <div className="d-flex gap-2">
           <Button variant="primary" onClick={() => setShowModal(true)}>

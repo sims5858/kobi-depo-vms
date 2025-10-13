@@ -196,7 +196,15 @@ const KoliYonetimi = () => {
   return (
     <div className="page-transition">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Koli Yönetimi</h1>
+        <div className="d-flex align-items-center">
+          <div className="bg-primary text-white rounded p-2 me-3">
+            <BiBox size={24} />
+          </div>
+          <div>
+            <h1 className="h3 mb-0 text-primary">Koli Yönetimi</h1>
+            <p className="text-muted mb-0">Koli ekleme, düzenleme ve silme işlemleri</p>
+          </div>
+        </div>
         <Button variant="primary" onClick={() => setShowModal(true)}>
           <BiPlus className="me-1" />
           Yeni Koli
