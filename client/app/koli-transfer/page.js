@@ -1066,7 +1066,7 @@ const KoliTransfer = () => {
                         <thead className="sticky-top bg-light">
                           <tr>
                             <th>Ürün</th>
-                            <th>Kaynak</th>
+                            <th>Kaynak → Hedef</th>
                             <th>Adet</th>
                             <th>İşlem</th>
                           </tr>
@@ -1081,7 +1081,11 @@ const KoliTransfer = () => {
                                 </div>
                               </td>
                               <td>
-                                <Badge bg="warning">{urun.kaynak_koli}</Badge>
+                                <div className="d-flex align-items-center gap-2">
+                                  <Badge bg="warning">{urun.kaynak_koli}</Badge>
+                                  <span className="text-muted">→</span>
+                                  <Badge bg="success">{girenKoli || 'Hedef'}</Badge>
+                                </div>
                               </td>
                               <td>
                                 <Badge bg="success">{urun.adet}</Badge>
