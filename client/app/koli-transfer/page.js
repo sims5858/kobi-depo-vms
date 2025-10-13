@@ -21,6 +21,7 @@ const KoliTransfer = () => {
   const [selectedKoliler, setSelectedKoliler] = useState([]);
   const [availableKoliler, setAvailableKoliler] = useState([]);
   const [cokluTransferUrunleri, setCokluTransferUrunleri] = useState([]);
+  const [koliBarkodInput, setKoliBarkodInput] = useState('');
 
   const loadKoliUrunleri = async (koliNo) => {
     try {
@@ -68,6 +69,49 @@ const KoliTransfer = () => {
         return [...prev, koliNo];
       }
     });
+  };
+
+  // Koli barkod okutma fonksiyonu
+  const handleKoliBarkodOkut = async () => {
+    if (!koliBarkodInput.trim()) {
+      toast.warning('Lütfen koli barkodunu girin');
+      return;
+    }
+
+    const koliNo = koliBarkodInput.trim();
+    
+    // Koli mevcut mu kontrol et
+    if (!availableKoliler.includes(koliNo)) {
+      toast.warning(`${koliNo} numaralı koli bulunamadı veya ürünü yok`);
+      setKoliBarkodInput('');
+      return;
+    }
+
+    // Koli zaten seçili mi kontrol et
+    if (selectedKoliler.includes(koliNo)) {
+      toast.info(`${koliNo} numaralı koli zaten seçili`);
+      setKoliBarkodInput('');
+      return;
+    }
+
+    // Koliye ürün var mı kontrol et
+    const urunler = await loadKoliUrunleri(koliNo);
+    if (urunler.length === 0) {
+      toast.warning(`${koliNo} numaralı kolide ürün bulunamadı`);
+      setKoliBarkodInput('');
+      return;
+    }
+
+    // Koliye ekle
+    setSelectedKoliler(prev => [...prev, koliNo]);
+    setKoliBarkodInput('');
+    toast.success(`${koliNo} numaralı koli seçildi (${urunler.length} ürün)`);
+  };
+
+  // Seçilen koliden kaldırma
+  const handleKoliKaldir = (koliNo) => {
+    setSelectedKoliler(prev => prev.filter(k => k !== koliNo));
+    toast.info(`${koliNo} numaralı koli seçimden kaldırıldı`);
   };
 
   // Çoklu koli transfer için ürünleri yükle
@@ -472,8 +516,59 @@ const KoliTransfer = () => {
               ) : (
                 <>
                   <Form.Group className="mb-3">
-                    <Form.Label>Kaynak Koliler (Çoklu Seçim)</Form.Label>
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '0.375rem', padding: '10px' }}>
+                    <Form.Label>Koli Barkod Okutma</Form.Label>
+                    <div className="input-group mb-2">
+                      <Form.Control
+                        type="text"
+                        value={koliBarkodInput}
+                        onChange={(e) => setKoliBarkodInput(e.target.value)}
+                        placeholder="Koli barkodunu okutun"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleKoliBarkodOkut();
+                          }
+                        }}
+                      />
+                      <Button 
+                        variant="primary" 
+                        onClick={handleKoliBarkodOkut}
+                        disabled={!koliBarkodInput.trim()}
+                      >
+                        <BiCamera />
+                      </Button>
+                    </div>
+                    <Form.Text className="text-muted">
+                      Koli barkodunu okutun veya manuel girin, Enter tuşuna basın
+                    </Form.Text>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Seçilen Koliler</Form.Label>
+                    {selectedKoliler.length > 0 ? (
+                      <div className="mb-2">
+                        {selectedKoliler.map(koliNo => (
+                          <Badge 
+                            key={koliNo} 
+                            bg="primary" 
+                            className="me-2 mb-1"
+                            style={{ fontSize: '0.9em', cursor: 'pointer' }}
+                            onClick={() => handleKoliKaldir(koliNo)}
+                            title="Kaldırmak için tıklayın"
+                          >
+                            {koliNo} ×
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-muted small py-2">
+                        Henüz koli seçilmedi
+                      </div>
+                    )}
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Manuel Koli Seçimi (Opsiyonel)</Form.Label>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '0.375rem', padding: '10px' }}>
                       {availableKoliler.length > 0 ? (
                         availableKoliler.map(koliNo => (
                           <Form.Check
@@ -492,16 +587,17 @@ const KoliTransfer = () => {
                         </div>
                       )}
                     </div>
-                    <Button 
-                      variant="outline-primary" 
-                      size="sm"
-                      className="w-100 mt-2"
-                      onClick={loadCokluKoliUrunleri}
-                      disabled={selectedKoliler.length === 0}
-                    >
-                      Ürünleri Yükle
-                    </Button>
                   </Form.Group>
+
+                  <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    className="w-100 mb-3"
+                    onClick={loadCokluKoliUrunleri}
+                    disabled={selectedKoliler.length === 0}
+                  >
+                    Ürünleri Yükle ({selectedKoliler.length} Koli)
+                  </Button>
 
                   <Form.Group className="mb-3">
                     <Form.Label>Hedef Koli Numarası</Form.Label>
