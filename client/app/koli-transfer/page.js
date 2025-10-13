@@ -15,6 +15,12 @@ const KoliTransfer = () => {
   const [transferAdet, setTransferAdet] = useState(1);
   const [barkodInput, setBarkodInput] = useState('');
   const [girenKoliUrunleri, setGirenKoliUrunleri] = useState([]);
+  
+  // Çoklu koli transfer için yeni state'ler
+  const [transferMode, setTransferMode] = useState('single'); // 'single' veya 'multiple'
+  const [selectedKoliler, setSelectedKoliler] = useState([]);
+  const [availableKoliler, setAvailableKoliler] = useState([]);
+  const [cokluTransferUrunleri, setCokluTransferUrunleri] = useState([]);
 
   const loadKoliUrunleri = async (koliNo) => {
     try {
@@ -30,6 +36,59 @@ const KoliTransfer = () => {
     } catch (error) {
       console.error('Koli ürünleri yüklenirken hata:', error);
       return [];
+    }
+  };
+
+  // Çoklu koli transfer için mevcut kolileri yükle
+  const loadAvailableKoliler = async () => {
+    try {
+      const response = await fetch(`/api/koli-envanter`);
+      const data = await response.json();
+      
+      // Ürünü olan kolileri al
+      const koliler = [...new Set(data
+        .filter(item => item.adet && item.adet > 0 && item.urun_barkod)
+        .map(item => item.koli_no)
+      )].sort();
+      
+      setAvailableKoliler(koliler);
+      return koliler;
+    } catch (error) {
+      console.error('Koli listesi yüklenirken hata:', error);
+      return [];
+    }
+  };
+
+  // Çoklu koli seçimi için checkbox handler
+  const handleKoliSec = (koliNo) => {
+    setSelectedKoliler(prev => {
+      if (prev.includes(koliNo)) {
+        return prev.filter(k => k !== koliNo);
+      } else {
+        return [...prev, koliNo];
+      }
+    });
+  };
+
+  // Çoklu koli transfer için ürünleri yükle
+  const loadCokluKoliUrunleri = async () => {
+    if (selectedKoliler.length === 0) {
+      toast.warning('Lütfen en az bir koli seçin');
+      return;
+    }
+
+    try {
+      const allUrunler = [];
+      for (const koliNo of selectedKoliler) {
+        const urunler = await loadKoliUrunleri(koliNo);
+        allUrunler.push(...urunler.map(urun => ({ ...urun, kaynak_koli: koliNo })));
+      }
+      
+      setCokluTransferUrunleri(allUrunler);
+      toast.success(`${allUrunler.length} ürün bulundu (${selectedKoliler.length} koliden)`);
+    } catch (error) {
+      console.error('Çoklu koli ürünleri yüklenirken hata:', error);
+      toast.error('Ürünler yüklenirken hata oluştu');
     }
   };
 
@@ -157,6 +216,59 @@ const KoliTransfer = () => {
     }
   };
 
+  // Çoklu koli transfer işlemi
+  const handleCokluTransferTamamla = async () => {
+    if (!girenKoli.trim()) {
+      toast.warning('Lütfen hedef koli numarasını girin');
+      return;
+    }
+
+    if (selectedKoliler.length === 0) {
+      toast.warning('Lütfen en az bir kaynak koli seçin');
+      return;
+    }
+
+    if (cokluTransferUrunleri.length === 0) {
+      toast.warning('Transfer edilecek ürün bulunmuyor');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/koli-transfer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cikan_koli: selectedKoliler, // Çoklu koli array'i
+          giren_koli: girenKoli,
+          urunler: cokluTransferUrunleri.map(urun => ({
+            barkod: urun.urun_barkod,
+            urun_adi: urun.urun_adi,
+            adet: urun.adet,
+            kaynak_koli: urun.kaynak_koli
+          }))
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success(`Çoklu transfer başarıyla tamamlandı. Transfer No: ${result.transfer_no}`);
+        
+        // Formu temizle
+        setGirenKoli('');
+        setSelectedKoliler([]);
+        setCokluTransferUrunleri([]);
+        setAvailableKoliler([]);
+      } else {
+        toast.error('Transfer sırasında hata oluştu');
+      }
+    } catch (error) {
+      console.error('Çoklu transfer hatası:', error);
+      toast.error('Transfer sırasında hata oluştu');
+    }
+  };
+
   const handleTransferUrunSil = (index) => {
     const silinenUrun = transferUrunleri[index];
     
@@ -252,120 +364,274 @@ const KoliTransfer = () => {
         boş koli sayısını artırın ve depo verimliliğini artırın.
       </Alert>
 
+      {/* Transfer Modu Seçimi */}
+      <Card className="mb-4">
+        <Card.Header>
+          <h5 className="mb-0">Transfer Modu Seçimi</h5>
+        </Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={6}>
+              <Form.Check
+                type="radio"
+                id="single-transfer"
+                name="transferMode"
+                label="Tek Koli Transferi"
+                checked={transferMode === 'single'}
+                onChange={() => setTransferMode('single')}
+                className="mb-2"
+              />
+              <small className="text-muted">Bir koliden diğer koliye transfer</small>
+            </Col>
+            <Col md={6}>
+              <Form.Check
+                type="radio"
+                id="multiple-transfer"
+                name="transferMode"
+                label="Çoklu Koli Transferi"
+                checked={transferMode === 'multiple'}
+                onChange={() => {
+                  setTransferMode('multiple');
+                  loadAvailableKoliler();
+                }}
+                className="mb-2"
+              />
+              <small className="text-muted">Birden fazla koliden tek koliye transfer</small>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
       <Row>
         {/* Sol Taraf - Transfer Ayarları */}
         <Col lg={4}>
           <Card className="mb-4">
             <Card.Header>
-              <h5 className="mb-0">Transfer Ayarları</h5>
+              <h5 className="mb-0">
+                Transfer Ayarları
+                {transferMode === 'multiple' && (
+                  <Badge bg="info" className="ms-2">Çoklu</Badge>
+                )}
+              </h5>
             </Card.Header>
             <Card.Body>
-              <Form.Group className="mb-3">
-                <Form.Label>Çıkan Koli Numarası</Form.Label>
-                <div className="input-group">
-                  <Form.Control
-                    type="text"
-                    value={cikanKoli}
-                    onChange={(e) => setCikanKoli(e.target.value)}
-                    placeholder="Koli numarasını girin"
-                  />
+              {transferMode === 'single' ? (
+                <>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Çıkan Koli Numarası</Form.Label>
+                    <div className="input-group">
+                      <Form.Control
+                        type="text"
+                        value={cikanKoli}
+                        onChange={(e) => setCikanKoli(e.target.value)}
+                        placeholder="Koli numarasını girin"
+                      />
+                      <Button 
+                        variant="outline-primary" 
+                        onClick={handleCikanKoliSec}
+                        disabled={!cikanKoli.trim()}
+                      >
+                        <BiCamera />
+                      </Button>
+                    </div>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Giren Koli Numarası</Form.Label>
+                    <div className="input-group">
+                      <Form.Control
+                        type="text"
+                        value={girenKoli}
+                        onChange={(e) => setGirenKoli(e.target.value)}
+                        placeholder="Hedef koli numarasını girin"
+                      />
+                      <Button 
+                        variant="outline-success" 
+                        onClick={handleGirenKoliSec}
+                        disabled={!girenKoli.trim()}
+                      >
+                        <BiCamera />
+                      </Button>
+                    </div>
+                  </Form.Group>
+
+                  <Alert variant="warning" className="small">
+                    <strong>Dikkat:</strong> Çıkan koli boşalacak, giren koli dolacaktır.
+                  </Alert>
+
                   <Button 
-                    variant="outline-primary" 
-                    onClick={handleCikanKoliSec}
-                    disabled={!cikanKoli.trim()}
+                    variant="success" 
+                    className="w-100"
+                    onClick={handleTransferTamamla}
+                    disabled={!girenKoli || transferUrunleri.length === 0}
                   >
-                    <BiCamera />
+                    <BiSave className="me-1" />
+                    Transferi Tamamla
                   </Button>
-                </div>
-              </Form.Group>
+                </>
+              ) : (
+                <>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Kaynak Koliler (Çoklu Seçim)</Form.Label>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #dee2e6', borderRadius: '0.375rem', padding: '10px' }}>
+                      {availableKoliler.length > 0 ? (
+                        availableKoliler.map(koliNo => (
+                          <Form.Check
+                            key={koliNo}
+                            type="checkbox"
+                            id={`koli-${koliNo}`}
+                            label={`Koli ${koliNo}`}
+                            checked={selectedKoliler.includes(koliNo)}
+                            onChange={() => handleKoliSec(koliNo)}
+                            className="mb-2"
+                          />
+                        ))
+                      ) : (
+                        <div className="text-center text-muted py-2">
+                          <small>Koli listesi yükleniyor...</small>
+                        </div>
+                      )}
+                    </div>
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm"
+                      className="w-100 mt-2"
+                      onClick={loadCokluKoliUrunleri}
+                      disabled={selectedKoliler.length === 0}
+                    >
+                      Ürünleri Yükle
+                    </Button>
+                  </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Giren Koli Numarası</Form.Label>
-                <div className="input-group">
-                  <Form.Control
-                    type="text"
-                    value={girenKoli}
-                    onChange={(e) => setGirenKoli(e.target.value)}
-                    placeholder="Hedef koli numarasını girin"
-                  />
+                  <Form.Group className="mb-3">
+                    <Form.Label>Hedef Koli Numarası</Form.Label>
+                    <div className="input-group">
+                      <Form.Control
+                        type="text"
+                        value={girenKoli}
+                        onChange={(e) => setGirenKoli(e.target.value)}
+                        placeholder="Hedef koli numarasını girin"
+                      />
+                      <Button 
+                        variant="outline-success" 
+                        onClick={handleGirenKoliSec}
+                        disabled={!girenKoli.trim()}
+                      >
+                        <BiCamera />
+                      </Button>
+                    </div>
+                  </Form.Group>
+
+                  <Alert variant="info" className="small">
+                    <strong>Çoklu Transfer:</strong> Seçilen kolilerden tüm ürünler hedef koliye taşınacak.
+                  </Alert>
+
                   <Button 
-                    variant="outline-success" 
-                    onClick={handleGirenKoliSec}
-                    disabled={!girenKoli.trim()}
+                    variant="success" 
+                    className="w-100"
+                    onClick={handleCokluTransferTamamla}
+                    disabled={!girenKoli || selectedKoliler.length === 0 || cokluTransferUrunleri.length === 0}
                   >
-                    <BiCamera />
+                    <BiSave className="me-1" />
+                    Çoklu Transferi Tamamla
                   </Button>
-                </div>
-              </Form.Group>
-
-              <Alert variant="warning" className="small">
-                <strong>Dikkat:</strong> Çıkan koli boşalacak, giren koli dolacaktır.
-              </Alert>
-
-              <Button 
-                variant="success" 
-                className="w-100"
-                onClick={handleTransferTamamla}
-                disabled={!girenKoli || transferUrunleri.length === 0}
-              >
-                <BiSave className="me-1" />
-                Transferi Tamamla
-              </Button>
+                </>
+              )}
             </Card.Body>
           </Card>
         </Col>
 
-        {/* Orta - Çıkan Koli Ürünleri */}
+        {/* Orta - Kaynak Koli Ürünleri */}
         <Col lg={4}>
           <Card className="mb-4">
             <Card.Header>
               <h5 className="mb-0">
-                Çıkan Koli Ürünleri
-                {cikanKoli && (
+                {transferMode === 'single' ? 'Çıkan Koli Ürünleri' : 'Kaynak Koli Ürünleri'}
+                {transferMode === 'single' && cikanKoli && (
                   <Badge bg="danger" className="ms-2">{cikanKoli}</Badge>
+                )}
+                {transferMode === 'multiple' && selectedKoliler.length > 0 && (
+                  <Badge bg="info" className="ms-2">{selectedKoliler.length} Koli</Badge>
                 )}
               </h5>
             </Card.Header>
             <Card.Body style={{ maxHeight: '500px', overflowY: 'auto' }}>
-              {cikanKoliUrunleri.length > 0 ? (
-                <Table responsive size="sm">
-                  <thead className="sticky-top bg-light">
-                    <tr>
-                      <th>Ürün</th>
-                      <th>Adet</th>
-                      <th>İşlem</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cikanKoliUrunleri.map((urun, index) => (
-                      <tr key={index}>
-                        <td>
-                          <div>
-                            <small className="text-muted">{urun.urun_barkod}</small><br />
-                            {urun.urun_adi}
-                          </div>
-                        </td>
-                        <td>
-                          <Badge bg="warning">{urun.adet}</Badge>
-                        </td>
-                        <td>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => handleUrunSec(urun)}
-                          >
-                            Transfer Et
-                          </Button>
-                        </td>
+              {transferMode === 'single' ? (
+                cikanKoliUrunleri.length > 0 ? (
+                  <Table responsive size="sm">
+                    <thead className="sticky-top bg-light">
+                      <tr>
+                        <th>Ürün</th>
+                        <th>Adet</th>
+                        <th>İşlem</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
+                    </thead>
+                    <tbody>
+                      {cikanKoliUrunleri.map((urun, index) => (
+                        <tr key={index}>
+                          <td>
+                            <div>
+                              <small className="text-muted">{urun.urun_barkod}</small><br />
+                              {urun.urun_adi}
+                            </div>
+                          </td>
+                          <td>
+                            <Badge bg="warning">{urun.adet}</Badge>
+                          </td>
+                          <td>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleUrunSec(urun)}
+                            >
+                              Transfer Et
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <div className="text-center text-muted py-4">
+                    <BiBox size={48} className="mb-2" />
+                    <p>Koli seçilmedi veya ürün bulunamadı</p>
+                  </div>
+                )
               ) : (
-                <div className="text-center text-muted py-4">
-                  <BiBox size={48} className="mb-2" />
-                  <p>Koli seçilmedi veya ürün bulunamadı</p>
-                </div>
+                cokluTransferUrunleri.length > 0 ? (
+                  <Table responsive size="sm">
+                    <thead className="sticky-top bg-light">
+                      <tr>
+                        <th>Ürün</th>
+                        <th>Kaynak</th>
+                        <th>Adet</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cokluTransferUrunleri.map((urun, index) => (
+                        <tr key={index}>
+                          <td>
+                            <div>
+                              <small className="text-muted">{urun.urun_barkod}</small><br />
+                              {urun.urun_adi}
+                            </div>
+                          </td>
+                          <td>
+                            <Badge bg="warning">{urun.kaynak_koli}</Badge>
+                          </td>
+                          <td>
+                            <Badge bg="info">{urun.adet}</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <div className="text-center text-muted py-4">
+                    <BiBox size={48} className="mb-2" />
+                    <p>Koli seçilmedi veya ürün bulunamadı</p>
+                  </div>
+                )
               )}
             </Card.Body>
           </Card>
@@ -433,42 +699,54 @@ const KoliTransfer = () => {
                   <h5 className="mb-0">
                     <BiCamera className="me-2" />
                     Ürün Barkodu Girişi
+                    {transferMode === 'multiple' && (
+                      <Badge bg="secondary" className="ms-2">Çoklu Mod</Badge>
+                    )}
                   </h5>
                 </Card.Header>
                 <Card.Body>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Transfer Edilecek Ürün Barkodu</Form.Label>
-                    <div className="input-group">
-                      <Form.Control
-                        type="text"
-                        value={barkodInput}
-                        onChange={(e) => setBarkodInput(e.target.value)}
-                        placeholder="Barkodu okutun veya yazın"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            handleBarkodGir();
-                          }
-                        }}
-                      />
-                      <Button 
-                        variant="primary" 
-                        onClick={handleBarkodGir}
-                        disabled={!barkodInput.trim() || !cikanKoli.trim()}
-                      >
-                        <BiCamera />
-                      </Button>
-                    </div>
-                    <Form.Text className="text-muted">
-                      Barkodu okutun veya manuel girin, Enter tuşuna basın
-                    </Form.Text>
-                  </Form.Group>
+                  {transferMode === 'single' ? (
+                    <>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Transfer Edilecek Ürün Barkodu</Form.Label>
+                        <div className="input-group">
+                          <Form.Control
+                            type="text"
+                            value={barkodInput}
+                            onChange={(e) => setBarkodInput(e.target.value)}
+                            placeholder="Barkodu okutun veya yazın"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleBarkodGir();
+                              }
+                            }}
+                          />
+                          <Button 
+                            variant="primary" 
+                            onClick={handleBarkodGir}
+                            disabled={!barkodInput.trim() || !cikanKoli.trim()}
+                          >
+                            <BiCamera />
+                          </Button>
+                        </div>
+                        <Form.Text className="text-muted">
+                          Barkodu okutun veya manuel girin, Enter tuşuna basın
+                        </Form.Text>
+                      </Form.Group>
 
-                  <Alert variant="info" className="small">
-                    <strong>Nasıl Kullanılır:</strong><br />
-                    1. Çıkan koli numarasını girin<br />
-                    2. Bu alana ürün barkodunu okutun<br />
-                    3. Ürün otomatik olarak transfer listesine eklenir
-                  </Alert>
+                      <Alert variant="info" className="small">
+                        <strong>Nasıl Kullanılır:</strong><br />
+                        1. Çıkan koli numarasını girin<br />
+                        2. Bu alana ürün barkodunu okutun<br />
+                        3. Ürün otomatik olarak transfer listesine eklenir
+                      </Alert>
+                    </>
+                  ) : (
+                    <Alert variant="info" className="small">
+                      <strong>Çoklu Koli Transfer Modu:</strong><br />
+                      Bu modda barkod girişi gerekmez. Seçilen kolilerdeki tüm ürünler otomatik olarak hedef koliye transfer edilir.
+                    </Alert>
+                  )}
                 </Card.Body>
               </Card>
             </Col>
@@ -478,52 +756,82 @@ const KoliTransfer = () => {
               <Card>
                 <Card.Header>
                   <h5 className="mb-0">
-                    Transfer Listesi
+                    {transferMode === 'single' ? 'Transfer Listesi' : 'Çoklu Transfer Özeti'}
                     {girenKoli && (
                       <Badge bg="success" className="ms-2">{girenKoli}</Badge>
                     )}
                   </h5>
                 </Card.Header>
                 <Card.Body style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {transferUrunleri.length > 0 ? (
-                    <Table responsive size="sm">
-                      <thead className="sticky-top bg-light">
-                        <tr>
-                          <th>Ürün</th>
-                          <th>Adet</th>
-                          <th>İşlem</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transferUrunleri.map((urun, index) => (
-                          <tr key={index}>
-                            <td>
-                              <div>
-                                <small className="text-muted">{urun.barkod}</small><br />
-                                {urun.urun_adi}
-                              </div>
-                            </td>
-                            <td>
-                              <Badge bg="success">{urun.adet}</Badge>
-                            </td>
-                            <td>
-                              <Button
-                                variant="outline-danger"
-                                size="sm"
-                                onClick={() => handleTransferUrunSil(index)}
-                              >
-                                <BiTrash />
-                              </Button>
-                            </td>
+                  {transferMode === 'single' ? (
+                    transferUrunleri.length > 0 ? (
+                      <Table responsive size="sm">
+                        <thead className="sticky-top bg-light">
+                          <tr>
+                            <th>Ürün</th>
+                            <th>Adet</th>
+                            <th>İşlem</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
+                        </thead>
+                        <tbody>
+                          {transferUrunleri.map((urun, index) => (
+                            <tr key={index}>
+                              <td>
+                                <div>
+                                  <small className="text-muted">{urun.barkod}</small><br />
+                                  {urun.urun_adi}
+                                </div>
+                              </td>
+                              <td>
+                                <Badge bg="success">{urun.adet}</Badge>
+                              </td>
+                              <td>
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  onClick={() => handleTransferUrunSil(index)}
+                                >
+                                  <BiTrash />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    ) : (
+                      <div className="text-center text-muted py-4">
+                        <BiPackage size={48} className="mb-2" />
+                        <p>Henüz transfer ürünü yok</p>
+                      </div>
+                    )
                   ) : (
-                    <div className="text-center text-muted py-4">
-                      <BiPackage size={48} className="mb-2" />
-                      <p>Henüz transfer ürünü yok</p>
-                    </div>
+                    cokluTransferUrunleri.length > 0 ? (
+                      <div>
+                        <div className="mb-3">
+                          <h6>Transfer Özeti</h6>
+                          <p className="mb-1">
+                            <strong>Kaynak Koliler:</strong> {selectedKoliler.join(', ')}
+                          </p>
+                          <p className="mb-1">
+                            <strong>Hedef Koli:</strong> {girenKoli}
+                          </p>
+                          <p className="mb-1">
+                            <strong>Toplam Ürün:</strong> {cokluTransferUrunleri.length} çeşit
+                          </p>
+                          <p className="mb-0">
+                            <strong>Toplam Adet:</strong> {cokluTransferUrunleri.reduce((sum, urun) => sum + urun.adet, 0)}
+                          </p>
+                        </div>
+                        <Alert variant="success" className="small">
+                          <strong>Hazır:</strong> Tüm ürünler hedef koliye transfer edilecek.
+                        </Alert>
+                      </div>
+                    ) : (
+                      <div className="text-center text-muted py-4">
+                        <BiPackage size={48} className="mb-2" />
+                        <p>Koli seçilmedi veya ürün bulunamadı</p>
+                      </div>
+                    )
                   )}
                 </Card.Body>
               </Card>
