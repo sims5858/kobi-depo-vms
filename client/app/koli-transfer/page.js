@@ -542,43 +542,48 @@ const KoliTransfer = () => {
             <Card.Body>
               {transferMode === 'single' ? (
                 <>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Çıkan Koli Numarası</Form.Label>
-                    <div className="input-group">
-                      <Form.Control
-                        type="text"
-                        value={cikanKoli}
-                        onChange={(e) => setCikanKoli(e.target.value)}
-                        placeholder="Koli numarasını girin"
-                      />
-                      <Button 
-                        variant="outline-primary" 
-                        onClick={handleCikanKoliSec}
-                        disabled={!cikanKoli.trim()}
-                      >
-                        <BiCamera />
-                      </Button>
-                    </div>
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Giren Koli Numarası</Form.Label>
-                    <div className="input-group">
-                      <Form.Control
-                        type="text"
-                        value={girenKoli}
-                        onChange={(e) => setGirenKoli(e.target.value)}
-                        placeholder="Hedef koli numarasını girin"
-                      />
-                      <Button 
-                        variant="outline-success" 
-                        onClick={handleGirenKoliSec}
-                        disabled={!girenKoli.trim()}
-                      >
-                        <BiCamera />
-                      </Button>
-                    </div>
-                  </Form.Group>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Çıkan Koli Numarası</Form.Label>
+                        <div className="input-group">
+                          <Form.Control
+                            type="text"
+                            value={cikanKoli}
+                            onChange={(e) => setCikanKoli(e.target.value)}
+                            placeholder="Koli numarasını girin"
+                          />
+                          <Button 
+                            variant="outline-primary" 
+                            onClick={handleCikanKoliSec}
+                            disabled={!cikanKoli.trim()}
+                          >
+                            <BiCamera />
+                          </Button>
+                        </div>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Giren Koli Numarası</Form.Label>
+                        <div className="input-group">
+                          <Form.Control
+                            type="text"
+                            value={girenKoli}
+                            onChange={(e) => setGirenKoli(e.target.value)}
+                            placeholder="Hedef koli numarasını girin"
+                          />
+                          <Button 
+                            variant="outline-success" 
+                            onClick={handleGirenKoliSec}
+                            disabled={!girenKoli.trim()}
+                          >
+                            <BiCamera />
+                          </Button>
+                        </div>
+                      </Form.Group>
+                    </Col>
+                  </Row>
 
                   <Alert variant="warning" className="small">
                     <strong>Dikkat:</strong> Çıkan koli boşalacak, giren koli dolacaktır.
