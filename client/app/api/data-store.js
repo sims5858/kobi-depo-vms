@@ -1,4 +1,4 @@
-// Memory-based veri yönetimi sistemi (Vercel uyumlu)
+// Optimized Memory-based veri yönetimi sistemi (Vercel uyumlu)
 // Vercel'de file system yazma çalışmadığı için memory'de tutuyoruz
 
 // Varsayılan veri
@@ -44,10 +44,10 @@ const defaultData = {
   activities: []
 };
 
-// Memory'de veri tutuyoruz
+// Memory'de veri tutuyoruz - Singleton pattern
 let memoryData = null;
 
-// Veriyi yükle
+// Veriyi yükle - Optimized
 export function loadData() {
   // İlk yüklemede dosyadan oku
   if (!memoryData) {
@@ -59,25 +59,24 @@ export function loadData() {
       if (fs.existsSync(dataPath)) {
         const fileData = fs.readFileSync(dataPath, 'utf8');
         memoryData = JSON.parse(fileData);
-        console.log('Veri dosyadan yüklendi:', Object.keys(memoryData).length, 'kategori');
+        console.log('✅ Veri dosyadan yüklendi:', Object.keys(memoryData).length, 'kategori');
       } else {
         memoryData = { ...defaultData };
-        console.log('Varsayılan veri yüklendi:', Object.keys(memoryData).length, 'kategori');
+        console.log('✅ Varsayılan veri yüklendi:', Object.keys(memoryData).length, 'kategori');
       }
     } catch (error) {
-      console.error('Veri yükleme hatası:', error);
+      console.error('❌ Veri yükleme hatası:', error);
       memoryData = { ...defaultData };
     }
   }
   
-  console.log('Veri yüklendi:', Object.keys(memoryData).length, 'kategori');
   return memoryData;
 }
 
-// Veriyi kaydet (memory'de ve dosyaya)
+// Veriyi kaydet - Optimized
 export function saveData(data) {
   memoryData = { ...data };
-  console.log('Veri kaydedildi (memory):', Object.keys(memoryData).length, 'kategori');
+  console.log('✅ Veri kaydedildi (memory):', Object.keys(memoryData).length, 'kategori');
   
   // Dosyaya da kaydet
   try {
@@ -92,9 +91,9 @@ export function saveData(data) {
     }
     
     fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-    console.log('Veri dosyaya kaydedildi!');
+    console.log('✅ Veri dosyaya kaydedildi!');
   } catch (error) {
-    console.error('Dosyaya kaydetme hatası:', error);
+    console.error('❌ Dosyaya kaydetme hatası:', error);
   }
 }
 
