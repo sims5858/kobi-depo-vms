@@ -5,17 +5,21 @@ export async function POST(request) {
   try {
     const { kullanici_adi, sifre } = await request.json();
     
-    console.log('Login denemesi:', { kullanici_adi });
+    console.log('Login denemesi:', { kullanici_adi, sifre });
     
     // Veriyi yükle
     const data = loadData();
     const kullanicilar = data.kullanicilar || [];
+    
+    console.log('Yüklenen kullanıcılar:', kullanicilar);
 
     // Kullanıcıyı bul
     const kullanici = kullanicilar.find(k => 
       k.kullanici_adi === kullanici_adi && 
       k.aktif === true
     );
+    
+    console.log('Bulunan kullanıcı:', kullanici);
 
     if (kullanici) {
       // Şifre kontrolü
@@ -33,8 +37,10 @@ export async function POST(request) {
             aktif: kullanici.aktif
           }
         };
+        console.log('Login başarılı:', response);
         return Response.json(response);
       } else {
+        console.log('Şifre yanlış');
         return Response.json({ 
           success: false, 
           error: 'Geçersiz şifre' 
@@ -42,6 +48,7 @@ export async function POST(request) {
       }
     }
 
+    console.log('Kullanıcı bulunamadı');
     return Response.json({ 
       success: false, 
       error: 'Geçersiz kullanıcı adı veya şifre' 
