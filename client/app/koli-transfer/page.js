@@ -550,17 +550,23 @@ const KoliTransfer = () => {
                           <Form.Control
                             type="text"
                             value={cikanKoli}
-                            onChange={(e) => setCikanKoli(e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setCikanKoli(value);
+                              
+                              // Koli numarası 6+ karakter ise otomatik işle
+                              if (value.length >= 6) {
+                                setTimeout(() => {
+                                  handleCikanKoliSec();
+                                }, 100);
+                              }
+                            }}
                             placeholder="Koli numarasını girin"
                           />
-                          <Button 
-                            variant="outline-primary" 
-                            onClick={handleCikanKoliSec}
-                            disabled={!cikanKoli.trim()}
-                          >
-                            <BiCamera />
-                          </Button>
                         </div>
+                        <Form.Text className="text-success">
+                          <strong>Otomatik:</strong> 6+ karakter girildiğinde otomatik algılanır
+                        </Form.Text>
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -570,17 +576,23 @@ const KoliTransfer = () => {
                           <Form.Control
                             type="text"
                             value={girenKoli}
-                            onChange={(e) => setGirenKoli(e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setGirenKoli(value);
+                              
+                              // Koli numarası 6+ karakter ise otomatik işle
+                              if (value.length >= 6) {
+                                setTimeout(() => {
+                                  handleGirenKoliSec();
+                                }, 100);
+                              }
+                            }}
                             placeholder="Hedef koli numarasını girin"
                           />
-                          <Button 
-                            variant="outline-success" 
-                            onClick={handleGirenKoliSec}
-                            disabled={!girenKoli.trim()}
-                          >
-                            <BiCamera />
-                          </Button>
                         </div>
+                        <Form.Text className="text-success">
+                          <strong>Otomatik:</strong> 6+ karakter girildiğinde otomatik algılanır
+                        </Form.Text>
                       </Form.Group>
                     </Col>
                   </Row>
