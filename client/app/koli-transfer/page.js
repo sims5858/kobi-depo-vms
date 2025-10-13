@@ -1042,8 +1042,6 @@ const KoliTransfer = () => {
                   )}
                 </Card.Body>
               </Card>
-            </Col>
-          </Row>
         </Col>
       </Row>
 
