@@ -267,12 +267,7 @@ const KoliTransfer = () => {
       return;
     }
 
-    if (selectedKoliler.length === 0) {
-      toast.warning('Lütfen en az bir kaynak koli seçin');
-      return;
-    }
-
-    if (cokluTransferUrunleri.length === 0) {
+    if (transferUrunleri.length === 0) {
       toast.warning('Transfer edilecek ürün bulunmuyor');
       return;
     }
@@ -286,8 +281,8 @@ const KoliTransfer = () => {
         body: JSON.stringify({
           cikan_koli: selectedKoliler, // Çoklu koli array'i
           giren_koli: girenKoli,
-          urunler: cokluTransferUrunleri.map(urun => ({
-            barkod: urun.urun_barkod,
+          urunler: transferUrunleri.map(urun => ({
+            barkod: urun.barkod,
             urun_adi: urun.urun_adi,
             adet: urun.adet,
             kaynak_koli: urun.kaynak_koli
@@ -303,6 +298,7 @@ const KoliTransfer = () => {
         setGirenKoli('');
         setSelectedKoliler([]);
         setCokluTransferUrunleri([]);
+        setTransferUrunleri([]);
         setAvailableKoliler([]);
       } else {
         toast.error('Transfer sırasında hata oluştu');
@@ -316,23 +312,44 @@ const KoliTransfer = () => {
   const handleTransferUrunSil = (index) => {
     const silinenUrun = transferUrunleri[index];
     
-    // Çıkan koli ürünlerine geri ekle
-    const existingUrun = cikanKoliUrunleri.find(u => u.urun_barkod === silinenUrun.barkod);
-    
-    if (existingUrun) {
-      setCikanKoliUrunleri(cikanKoliUrunleri.map(u => 
-        u.urun_barkod === silinenUrun.barkod
-          ? { ...u, adet: u.adet + silinenUrun.adet }
-          : u
-      ));
+    if (transferMode === 'single') {
+      // Tek koli modunda çıkan koli ürünlerine geri ekle
+      const existingUrun = cikanKoliUrunleri.find(u => u.urun_barkod === silinenUrun.barkod);
+      
+      if (existingUrun) {
+        setCikanKoliUrunleri(cikanKoliUrunleri.map(u => 
+          u.urun_barkod === silinenUrun.barkod
+            ? { ...u, adet: u.adet + silinenUrun.adet }
+            : u
+        ));
+      } else {
+        // Eğer ürün çıkan koli listesinde yoksa yeniden ekle
+        setCikanKoliUrunleri([...cikanKoliUrunleri, {
+          urun_barkod: silinenUrun.barkod,
+          urun_adi: silinenUrun.urun_adi,
+          adet: silinenUrun.adet,
+          koli_no: cikanKoli
+        }]);
+      }
     } else {
-      // Eğer ürün çıkan koli listesinde yoksa yeniden ekle
-      setCikanKoliUrunleri([...cikanKoliUrunleri, {
-        urun_barkod: silinenUrun.barkod,
-        urun_adi: silinenUrun.urun_adi,
-        adet: silinenUrun.adet,
-        koli_no: cikanKoli
-      }]);
+      // Çoklu koli modunda çoklu koli ürünlerine geri ekle
+      const existingUrun = cokluTransferUrunleri.find(u => u.urun_barkod === silinenUrun.barkod);
+      
+      if (existingUrun) {
+        setCokluTransferUrunleri(cokluTransferUrunleri.map(u => 
+          u.urun_barkod === silinenUrun.barkod
+            ? { ...u, adet: u.adet + silinenUrun.adet }
+            : u
+        ));
+      } else {
+        // Eğer ürün çoklu koli listesinde yoksa yeniden ekle
+        setCokluTransferUrunleri([...cokluTransferUrunleri, {
+          urun_barkod: silinenUrun.barkod,
+          urun_adi: silinenUrun.urun_adi,
+          adet: silinenUrun.adet,
+          kaynak_koli: silinenUrun.kaynak_koli
+        }]);
+      }
     }
 
     setTransferUrunleri(transferUrunleri.filter((_, i) => i !== index));
@@ -345,52 +362,102 @@ const KoliTransfer = () => {
       return;
     }
 
-    if (!cikanKoli.trim()) {
-      toast.warning('Önce çıkan koli numarasını girin');
-      return;
-    }
+    if (transferMode === 'single') {
+      if (!cikanKoli.trim()) {
+        toast.warning('Önce çıkan koli numarasını girin');
+        return;
+      }
 
-    // Çıkan koli ürünlerinde barkodu ara
-    const bulunanUrun = cikanKoliUrunleri.find(u => u.urun_barkod === barkodInput.trim());
-    
-    if (!bulunanUrun) {
-      toast.warning(`${barkodInput} barkodlu ürün bu kolide bulunamadı`);
-      setBarkodInput('');
-      return;
-    }
-
-    // Ürünü transfer listesine ekle
-    const existingTransfer = transferUrunleri.find(u => u.barkod === bulunanUrun.urun_barkod);
-    
-    if (existingTransfer) {
-      const newTotal = existingTransfer.adet + 1;
-      if (newTotal > bulunanUrun.adet) {
-        toast.warning(`Maksimum ${bulunanUrun.adet} adet transfer edilebilir`);
+      // Tek koli modunda çıkan koli ürünlerinde barkodu ara
+      const bulunanUrun = cikanKoliUrunleri.find(u => u.urun_barkod === barkodInput.trim());
+      
+      if (!bulunanUrun) {
+        toast.warning(`${barkodInput} barkodlu ürün bu kolide bulunamadı`);
         setBarkodInput('');
         return;
       }
-      setTransferUrunleri(transferUrunleri.map(u => 
-        u.barkod === bulunanUrun.urun_barkod 
-          ? { ...u, adet: newTotal }
+
+      // Ürünü transfer listesine ekle
+      const existingTransfer = transferUrunleri.find(u => u.barkod === bulunanUrun.urun_barkod);
+      
+      if (existingTransfer) {
+        const newTotal = existingTransfer.adet + 1;
+        if (newTotal > bulunanUrun.adet) {
+          toast.warning(`Maksimum ${bulunanUrun.adet} adet transfer edilebilir`);
+          setBarkodInput('');
+          return;
+        }
+        setTransferUrunleri(transferUrunleri.map(u => 
+          u.barkod === bulunanUrun.urun_barkod 
+            ? { ...u, adet: newTotal }
+            : u
+        ));
+      } else {
+        setTransferUrunleri([...transferUrunleri, {
+          barkod: bulunanUrun.urun_barkod,
+          urun_adi: bulunanUrun.urun_adi,
+          adet: 1
+        }]);
+      }
+
+      // Çıkan koli ürünlerinden düş
+      setCikanKoliUrunleri(cikanKoliUrunleri.map(u => 
+        u.urun_barkod === bulunanUrun.urun_barkod
+          ? { ...u, adet: u.adet - 1 }
           : u
-      ));
+      ).filter(u => u.adet > 0));
+
+      setBarkodInput('');
+      toast.success(`${bulunanUrun.urun_adi} transfer listesine eklendi`);
     } else {
-      setTransferUrunleri([...transferUrunleri, {
-        barkod: bulunanUrun.urun_barkod,
-        urun_adi: bulunanUrun.urun_adi,
-        adet: 1
-      }]);
+      // Çoklu koli modunda seçilen kolilerdeki ürünlerde barkodu ara
+      if (selectedKoliler.length === 0) {
+        toast.warning('Önce kaynak kolileri seçin');
+        return;
+      }
+
+      const bulunanUrun = cokluTransferUrunleri.find(u => u.urun_barkod === barkodInput.trim());
+      
+      if (!bulunanUrun) {
+        toast.warning(`${barkodInput} barkodlu ürün seçilen kolilerde bulunamadı`);
+        setBarkodInput('');
+        return;
+      }
+
+      // Ürünü transfer listesine ekle
+      const existingTransfer = transferUrunleri.find(u => u.barkod === bulunanUrun.urun_barkod);
+      
+      if (existingTransfer) {
+        const newTotal = existingTransfer.adet + 1;
+        if (newTotal > bulunanUrun.adet) {
+          toast.warning(`Maksimum ${bulunanUrun.adet} adet transfer edilebilir`);
+          setBarkodInput('');
+          return;
+        }
+        setTransferUrunleri(transferUrunleri.map(u => 
+          u.barkod === bulunanUrun.urun_barkod 
+            ? { ...u, adet: newTotal, kaynak_koli: bulunanUrun.kaynak_koli }
+            : u
+        ));
+      } else {
+        setTransferUrunleri([...transferUrunleri, {
+          barkod: bulunanUrun.urun_barkod,
+          urun_adi: bulunanUrun.urun_adi,
+          adet: 1,
+          kaynak_koli: bulunanUrun.kaynak_koli
+        }]);
+      }
+
+      // Çoklu koli ürünlerinden düş
+      setCokluTransferUrunleri(cokluTransferUrunleri.map(u => 
+        u.urun_barkod === bulunanUrun.urun_barkod
+          ? { ...u, adet: u.adet - 1 }
+          : u
+      ).filter(u => u.adet > 0));
+
+      setBarkodInput('');
+      toast.success(`${bulunanUrun.urun_adi} transfer listesine eklendi (${bulunanUrun.kaynak_koli})`);
     }
-
-    // Çıkan koli ürünlerinden düş
-    setCikanKoliUrunleri(cikanKoliUrunleri.map(u => 
-      u.urun_barkod === bulunanUrun.urun_barkod
-        ? { ...u, adet: u.adet - 1 }
-        : u
-    ).filter(u => u.adet > 0));
-
-    setBarkodInput('');
-    toast.success(`${bulunanUrun.urun_adi} transfer listesine eklendi`);
   };
 
   return (
@@ -838,10 +905,42 @@ const KoliTransfer = () => {
                       </Alert>
                     </>
                   ) : (
-                    <Alert variant="info" className="small">
-                      <strong>Çoklu Koli Transfer Modu:</strong><br />
-                      Bu modda barkod girişi gerekmez. Seçilen kolilerdeki tüm ürünler otomatik olarak hedef koliye transfer edilir.
-                    </Alert>
+                    <>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Transfer Edilecek Ürün Barkodu</Form.Label>
+                        <div className="input-group">
+                          <Form.Control
+                            type="text"
+                            value={barkodInput}
+                            onChange={(e) => setBarkodInput(e.target.value)}
+                            placeholder="Barkodu okutun veya yazın"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleBarkodGir();
+                              }
+                            }}
+                          />
+                          <Button 
+                            variant="primary" 
+                            onClick={handleBarkodGir}
+                            disabled={!barkodInput.trim() || selectedKoliler.length === 0}
+                          >
+                            <BiCamera />
+                          </Button>
+                        </div>
+                        <Form.Text className="text-muted">
+                          Barkodu okutun veya manuel girin, Enter tuşuna basın
+                        </Form.Text>
+                      </Form.Group>
+
+                      <Alert variant="info" className="small">
+                        <strong>Çoklu Koli Transfer Modu:</strong><br />
+                        1. Kaynak kolileri seçin<br />
+                        2. Ürünleri yükleyin<br />
+                        3. Bu alana ürün barkodunu okutun<br />
+                        4. Ürün otomatik olarak transfer listesine eklenir
+                      </Alert>
+                    </>
                   )}
                 </Card.Body>
               </Card>
@@ -901,31 +1000,48 @@ const KoliTransfer = () => {
                       </div>
                     )
                   ) : (
-                    cokluTransferUrunleri.length > 0 ? (
-                      <div>
-                        <div className="mb-3">
-                          <h6>Transfer Özeti</h6>
-                          <p className="mb-1">
-                            <strong>Kaynak Koliler:</strong> {selectedKoliler.join(', ')}
-                          </p>
-                          <p className="mb-1">
-                            <strong>Hedef Koli:</strong> {girenKoli}
-                          </p>
-                          <p className="mb-1">
-                            <strong>Toplam Ürün:</strong> {cokluTransferUrunleri.length} çeşit
-                          </p>
-                          <p className="mb-0">
-                            <strong>Toplam Adet:</strong> {cokluTransferUrunleri.reduce((sum, urun) => sum + urun.adet, 0)}
-                          </p>
-                        </div>
-                        <Alert variant="success" className="small">
-                          <strong>Hazır:</strong> Tüm ürünler hedef koliye transfer edilecek.
-                        </Alert>
-                      </div>
+                    transferUrunleri.length > 0 ? (
+                      <Table responsive size="sm">
+                        <thead className="sticky-top bg-light">
+                          <tr>
+                            <th>Ürün</th>
+                            <th>Kaynak</th>
+                            <th>Adet</th>
+                            <th>İşlem</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transferUrunleri.map((urun, index) => (
+                            <tr key={index}>
+                              <td>
+                                <div>
+                                  <small className="text-muted">{urun.barkod}</small><br />
+                                  {urun.urun_adi}
+                                </div>
+                              </td>
+                              <td>
+                                <Badge bg="warning">{urun.kaynak_koli}</Badge>
+                              </td>
+                              <td>
+                                <Badge bg="success">{urun.adet}</Badge>
+                              </td>
+                              <td>
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  onClick={() => handleTransferUrunSil(index)}
+                                >
+                                  <BiTrash />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
                     ) : (
                       <div className="text-center text-muted py-4">
                         <BiPackage size={48} className="mb-2" />
-                        <p>Koli seçilmedi veya ürün bulunamadı</p>
+                        <p>Henüz transfer ürünü yok</p>
                       </div>
                     )
                   )}
