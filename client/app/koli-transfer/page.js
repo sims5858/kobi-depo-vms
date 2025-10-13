@@ -565,7 +565,7 @@ const KoliTransfer = () => {
                           />
                         </div>
                         <Form.Text className="text-success">
-                          <strong>Otomatik:</strong> 6+ karakter girildiğinde otomatik algılanır
+                          <strong>Otomatik:</strong> Koli numarası girildiğinde otomatik algılanır
                         </Form.Text>
                       </Form.Group>
                     </Col>
@@ -591,7 +591,7 @@ const KoliTransfer = () => {
                           />
                         </div>
                         <Form.Text className="text-success">
-                          <strong>Otomatik:</strong> 6+ karakter girildiğinde otomatik algılanır
+                          <strong>Otomatik:</strong> Koli numarası girildiğinde otomatik algılanır
                         </Form.Text>
                       </Form.Group>
                     </Col>
@@ -640,7 +640,7 @@ const KoliTransfer = () => {
                       />
                     </div>
                     <Form.Text className="text-success">
-                      <strong>Otomatik:</strong> 8+ karakter girildiğinde otomatik işlenir
+                      <strong>Otomatik:</strong> Barkod girildiğinde otomatik işlenir
                     </Form.Text>
                   </Form.Group>
 
