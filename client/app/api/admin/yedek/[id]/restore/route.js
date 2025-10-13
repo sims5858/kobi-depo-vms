@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import { loadData, saveData } from '../../../../data-store';
-import fs from 'fs';
-import path from 'path';
 
 export async function POST(request, { params }) {
   try {
@@ -13,37 +11,50 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Geri yükleme onayı gerekli' }, { status: 400 });
     }
     
-    const backupDir = path.join(process.cwd(), 'backups');
-    const backupPath = path.join(backupDir, `${id}.json`);
+    // Mevcut veriyi yükle
+    const currentData = loadData();
     
-    // Yedek dosyası var mı kontrol et
-    if (!fs.existsSync(backupPath)) {
-      return NextResponse.json({ error: 'Yedek dosyası bulunamadı' }, { status: 404 });
+    // Yedek dosyasını bul
+    const yedek = currentData.yedekler?.find(y => y.id === id);
+    
+    if (!yedek) {
+      return NextResponse.json({ error: 'Yedek bulunamadı' }, { status: 404 });
     }
     
-    // Yedek dosyasını oku
-    const backupContent = fs.readFileSync(backupPath, 'utf8');
-    const backupData = JSON.parse(backupContent);
-    
-    // Yedek bilgilerini kaldır (sadece veri kalsın)
-    delete backupData.yedek_bilgisi;
-    
     // Mevcut veriyi yedekle (güvenlik için)
-    const currentData = loadData();
-    const currentBackupPath = path.join(backupDir, `geri_yukleme_oncesi_${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
-    fs.writeFileSync(currentBackupPath, JSON.stringify(currentData, null, 2));
+    const mevcutYedek = {
+      id: `geri_yukleme_oncesi_${new Date().toISOString().replace(/[:.]/g, '-')}`,
+      dosya_adi: `geri_yukleme_oncesi_${new Date().toISOString().replace(/[:.]/g, '-')}.json`,
+      aciklama: `Geri yükleme öncesi otomatik yedek - ${new Date().toLocaleString('tr-TR')}`,
+      olusturma_tarihi: new Date().toISOString(),
+      boyut: JSON.stringify(currentData).length,
+      durum: 'aktif',
+      veri: { ...currentData }
+    };
     
-    // Veriyi geri yükle
-    saveData(backupData);
+    // Mevcut yedekleri data'ya ekle
+    if (!currentData.yedekler) {
+      currentData.yedekler = [];
+    }
+    currentData.yedekler.push(mevcutYedek);
     
-    console.log(`Veri geri yüklendi: ${id}.json`);
-    console.log(`Mevcut veri yedeklendi: ${currentBackupPath}`);
+    // Yedek verisini geri yükle
+    const restoredData = {
+      ...yedek.veri,
+      yedekler: currentData.yedekler // Yedek listesini koru
+    };
+    
+    // Veriyi kaydet
+    saveData(restoredData);
+    
+    console.log(`Veri geri yüklendi: ${id}`);
+    console.log(`Mevcut veri yedeklendi: ${mevcutYedek.id}`);
     
     return NextResponse.json({ 
       success: true, 
       message: 'Veriler başarıyla geri yüklendi',
       yedek_dosyasi: id,
-      mevcut_veri_yedeklendi: currentBackupPath
+      mevcut_veri_yedeklendi: mevcutYedek.id
     });
   } catch (error) {
     console.error('Geri yükleme hatası:', error);

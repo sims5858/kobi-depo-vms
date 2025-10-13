@@ -1,27 +1,36 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { loadData, saveData } from '../../../../data-store';
 
 export async function DELETE(request, { params }) {
   try {
     const { id } = params;
-    const backupDir = path.join(process.cwd(), 'backups');
-    const backupPath = path.join(backupDir, `${id}.json`);
     
-    // Dosya var mı kontrol et
-    if (!fs.existsSync(backupPath)) {
-      return NextResponse.json({ error: 'Yedek dosyası bulunamadı' }, { status: 404 });
+    // Mevcut veriyi yükle
+    const data = loadData();
+    
+    // Yedek dosyasını bul ve sil
+    if (data.yedekler) {
+      const yedekIndex = data.yedekler.findIndex(y => y.id === id);
+      
+      if (yedekIndex === -1) {
+        return NextResponse.json({ error: 'Yedek bulunamadı' }, { status: 404 });
+      }
+      
+      // Yedeği sil
+      data.yedekler.splice(yedekIndex, 1);
+      
+      // Veriyi kaydet
+      saveData(data);
+      
+      console.log(`Yedek silindi: ${id}`);
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Yedek başarıyla silindi' 
+      });
+    } else {
+      return NextResponse.json({ error: 'Yedek bulunamadı' }, { status: 404 });
     }
-    
-    // Dosyayı sil
-    fs.unlinkSync(backupPath);
-    
-    console.log(`Yedek silindi: ${id}.json`);
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Yedek başarıyla silindi' 
-    });
   } catch (error) {
     console.error('Yedek silme hatası:', error);
     return NextResponse.json({ error: 'Yedek silinirken hata oluştu' }, { status: 500 });
