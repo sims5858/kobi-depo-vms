@@ -1,5 +1,11 @@
-// Optimized Memory-based veri yönetimi sistemi (Vercel uyumlu)
-// Vercel'de file system yazma çalışmadığı için memory'de tutuyoruz
+// Hybrid veri yönetimi sistemi - Local'de file, Vercel'de memory
+// Local development için file-based, production için memory-based
+
+import fs from 'fs';
+import path from 'path';
+
+// Data file path
+const DATA_FILE = path.join(process.cwd(), 'data', 'vms-data.json');
 
 // Varsayılan veri
 const defaultData = {
@@ -47,21 +53,64 @@ const defaultData = {
 // Memory'de veri tutuyoruz - Singleton pattern
 let memoryData = null;
 
-// Veriyi yükle - Vercel Optimized
+// Environment kontrolü
+const isVercel = process.env.VERCEL === '1';
+const isLocal = !isVercel;
+
+// Veriyi yükle - Hybrid (Local: File, Vercel: Memory)
 export function loadData() {
-  // İlk yüklemede varsayılan veriyi kullan
-  if (!memoryData) {
-    memoryData = { ...defaultData };
-    console.log('✅ Varsayılan veri yüklendi:', Object.keys(memoryData).length, 'kategori');
+  if (isLocal) {
+    // Local development - File-based
+    try {
+      if (fs.existsSync(DATA_FILE)) {
+        const fileData = fs.readFileSync(DATA_FILE, 'utf8');
+        const data = JSON.parse(fileData);
+        console.log('✅ Veri dosyadan yüklendi:', Object.keys(data).length, 'kategori');
+        return data;
+      } else {
+        // Data klasörü yoksa oluştur
+        const dataDir = path.dirname(DATA_FILE);
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        // Varsayılan veriyi kaydet
+        fs.writeFileSync(DATA_FILE, JSON.stringify(defaultData, null, 2));
+        console.log('✅ Varsayılan veri dosyaya kaydedildi');
+        return defaultData;
+      }
+    } catch (error) {
+      console.error('❌ Veri yükleme hatası:', error);
+      return defaultData;
+    }
+  } else {
+    // Vercel production - Memory-based
+    if (!memoryData) {
+      memoryData = { ...defaultData };
+      console.log('✅ Varsayılan veri yüklendi (memory):', Object.keys(memoryData).length, 'kategori');
+    }
+    return memoryData;
   }
-  
-  return memoryData;
 }
 
-// Veriyi kaydet - Vercel Optimized
+// Veriyi kaydet - Hybrid (Local: File, Vercel: Memory)
 export function saveData(data) {
-  memoryData = { ...data };
-  console.log('✅ Veri kaydedildi (memory):', Object.keys(memoryData).length, 'kategori');
+  if (isLocal) {
+    // Local development - File-based
+    try {
+      const dataDir = path.dirname(DATA_FILE);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+      console.log('✅ Veri dosyaya kaydedildi:', Object.keys(data).length, 'kategori');
+    } catch (error) {
+      console.error('❌ Veri kaydetme hatası:', error);
+    }
+  } else {
+    // Vercel production - Memory-based
+    memoryData = { ...data };
+    console.log('✅ Veri kaydedildi (memory):', Object.keys(memoryData).length, 'kategori');
+  }
 }
 
 // Ürünleri güncelle
