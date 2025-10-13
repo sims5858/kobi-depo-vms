@@ -130,7 +130,7 @@ const AdminPanel = () => {
         </div>
         <div className="d-flex gap-2">
           <Link href="/admin/yedek">
-            <Button variant="outline-success" size="sm" className="d-flex align-items-center">
+            <Button variant="success" size="sm" className="d-flex align-items-center">
               <BiSave className="me-1" />
               Yedek Yönetimi
             </Button>
