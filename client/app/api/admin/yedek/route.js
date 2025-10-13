@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadData, saveData } from '../../data-store';
+import { loadData, saveData } from '../../data-store.js';
 
 // Yedek listesini getir (memory'den)
 export async function GET() {

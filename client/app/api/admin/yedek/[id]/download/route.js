@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadData } from '../../../../data-store';
+import { loadData } from '../../../../data-store.js';
 
 export async function GET(request, { params }) {
   try {
