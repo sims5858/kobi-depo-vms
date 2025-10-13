@@ -68,8 +68,7 @@ const Sidebar = ({ collapsed, user, mobileOpen, onMobileClose }) => {
       className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'show' : ''}`}
       style={{
         width: collapsed ? '60px' : '250px',
-        transition: 'width 0.3s, transform 0.3s',
-        overflowY: 'auto'
+        transition: 'width 0.3s, transform 0.3s'
       }}
     >
       <Nav className="flex-column">
