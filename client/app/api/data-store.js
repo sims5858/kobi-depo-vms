@@ -47,54 +47,21 @@ const defaultData = {
 // Memory'de veri tutuyoruz - Singleton pattern
 let memoryData = null;
 
-// Veriyi yükle - Optimized
+// Veriyi yükle - Vercel Optimized
 export function loadData() {
-  // İlk yüklemede dosyadan oku
+  // İlk yüklemede varsayılan veriyi kullan
   if (!memoryData) {
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const dataPath = path.join(process.cwd(), 'data', 'vms-data.json');
-      
-      if (fs.existsSync(dataPath)) {
-        const fileData = fs.readFileSync(dataPath, 'utf8');
-        memoryData = JSON.parse(fileData);
-        console.log('✅ Veri dosyadan yüklendi:', Object.keys(memoryData).length, 'kategori');
-      } else {
-        memoryData = { ...defaultData };
-        console.log('✅ Varsayılan veri yüklendi:', Object.keys(memoryData).length, 'kategori');
-      }
-    } catch (error) {
-      console.error('❌ Veri yükleme hatası:', error);
-      memoryData = { ...defaultData };
-    }
+    memoryData = { ...defaultData };
+    console.log('✅ Varsayılan veri yüklendi:', Object.keys(memoryData).length, 'kategori');
   }
   
   return memoryData;
 }
 
-// Veriyi kaydet - Optimized
+// Veriyi kaydet - Vercel Optimized
 export function saveData(data) {
   memoryData = { ...data };
   console.log('✅ Veri kaydedildi (memory):', Object.keys(memoryData).length, 'kategori');
-  
-  // Dosyaya da kaydet
-  try {
-    const fs = require('fs');
-    const path = require('path');
-    const dataPath = path.join(process.cwd(), 'data', 'vms-data.json');
-    
-    // data klasörünü oluştur
-    const dataDir = path.dirname(dataPath);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-    console.log('✅ Veri dosyaya kaydedildi!');
-  } catch (error) {
-    console.error('❌ Dosyaya kaydetme hatası:', error);
-  }
 }
 
 // Ürünleri güncelle
