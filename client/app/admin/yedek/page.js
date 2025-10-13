@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Table, Alert, Badge, Modal, Form } from 'react-bootstrap';
-import { BiDownload, BiUpload, BiTrash, BiSave, BiRefreshCw, BiCalendar, BiFile, BiShield } from 'react-icons/bi';
+import { BiDownload, BiUpload, BiTrash, BiSave, BiRefresh, BiCalendar, BiFile, BiShield } from 'react-icons/bi';
 import { toast } from 'react-toastify';
 
 const YedekYonetimi = () => {
@@ -195,7 +195,7 @@ const YedekYonetimi = () => {
                   disabled={loading}
                   className="d-flex align-items-center"
                 >
-                  <BiRefreshCw className="me-1" />
+                  <BiRefresh className="me-1" />
                   Yenile
                 </Button>
               </div>
