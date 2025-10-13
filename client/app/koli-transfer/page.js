@@ -612,24 +612,23 @@ const KoliTransfer = () => {
                       <Form.Control
                         type="text"
                         value={barkodInput}
-                        onChange={(e) => setBarkodInput(e.target.value)}
-                        placeholder="Barkodu okutun veya yazın"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            handleBarkodGir();
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setBarkodInput(value);
+                          
+                          // Barkod uzunluğu 8 veya daha fazla ise otomatik işle
+                          if (value.length >= 8 && cikanKoli.trim()) {
+                            setTimeout(() => {
+                              handleBarkodGir();
+                            }, 100); // Kısa bir gecikme ile
                           }
                         }}
+                        placeholder="Barkodu okutun veya yazın"
+                        autoFocus
                       />
-                      <Button 
-                        variant="primary" 
-                        onClick={handleBarkodGir}
-                        disabled={!barkodInput.trim()}
-                      >
-                        <BiCamera />
-                      </Button>
                     </div>
-                    <Form.Text className="text-muted">
-                      Barkodu okutun - 8+ karakter girildiğinde otomatik işlenir
+                    <Form.Text className="text-success">
+                      <strong>Otomatik:</strong> 8+ karakter girildiğinde otomatik işlenir
                     </Form.Text>
                   </Form.Group>
 
