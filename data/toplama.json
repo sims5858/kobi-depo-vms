@@ -1,0 +1,342 @@
+[
+  {
+    "fis_no": "BTI24680042970",
+    "urunler": [
+      {
+        "fis_no": "BTI24466091367",
+        "koli_no": "D2-0165",
+        "urun_barkod": "1000000023954",
+        "urun_adi": "E7PABLOS4",
+        "adet": 1,
+        "tarih": "15.10.2025 13:36:17",
+        "fisi_no": "BTI24680042970",
+        "eski_stok": 2,
+        "yeni_stok": 1
+      },
+      {
+        "fis_no": "BTI24466091367",
+        "koli_no": "D2-0165",
+        "urun_barkod": "191928974495",
+        "urun_adi": "T0A6PRKY4",
+        "adet": 1,
+        "tarih": "15.10.2025 13:36:25",
+        "fisi_no": "BTI24680042970",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:38:05.975Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 7082,
+        "eski_stok": 2,
+        "yeni_stok": 1,
+        "cikis_adet": 1
+      },
+      {
+        "urun_id": 7087,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 1
+  },
+  {
+    "fis_no": "BTI12345678",
+    "urunler": [
+      {
+        "tarih": "14.10.2025 19:30:00",
+        "urun_adi": "Test �orün",
+        "adet": 1,
+        "koli_no": "D1-0217",
+        "urun_barkod": "3515720186264",
+        "fisi_no": "BTI12345678",
+        "eski_stok": 3,
+        "yeni_stok": 2
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:39:08.050Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 10,
+        "eski_stok": 3,
+        "yeni_stok": 2,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 2
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0165",
+        "urun_barkod": "193395913670",
+        "urun_adi": "NF0A4T1A3961",
+        "adet": 1,
+        "tarih": "15.10.2025 13:39:46",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 2,
+        "yeni_stok": 1
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:39:46.076Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 7095,
+        "eski_stok": 2,
+        "yeni_stok": 1,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 3
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0165",
+        "urun_barkod": "193395913670",
+        "urun_adi": "NF0A4T1A3961",
+        "adet": 1,
+        "tarih": "15.10.2025 13:39:46",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:39:46.912Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 7095,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 4
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0165",
+        "urun_barkod": "194901491576",
+        "urun_adi": "NF0A4T1RFN41",
+        "adet": 1,
+        "tarih": "15.10.2025 13:40:13",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:40:13.927Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 7101,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 5
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0165",
+        "urun_barkod": "194903427313",
+        "urun_adi": "NF0A555QJK31",
+        "adet": 1,
+        "tarih": "15.10.2025 13:40:17",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:40:17.838Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 7107,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 6
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0125",
+        "urun_barkod": "194902425792",
+        "urun_adi": "NF0A4T2SZ1P1",
+        "adet": 1,
+        "tarih": "15.10.2025 13:41:36",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:41:36.523Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 6049,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 7
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0125",
+        "urun_barkod": "196009248960",
+        "urun_adi": "NF0A47AB66G1",
+        "adet": 1,
+        "tarih": "15.10.2025 13:41:43",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:41:43.645Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 6053,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 8
+  },
+  {
+    "fis_no": "BTI24746274784",
+    "urunler": [
+      {
+        "fis_no": "BTI24746274784",
+        "koli_no": "D2-0125",
+        "urun_barkod": "197063190905",
+        "urun_adi": "NF0A47AAC3F1",
+        "adet": 1,
+        "tarih": "15.10.2025 13:41:47",
+        "fisi_no": "BTI24746274784",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:41:47.420Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 6054,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 9
+  },
+  {
+    "fis_no": "BTI12345678",
+    "urunler": [
+      {
+        "tarih": "14.10.2025 19:30:00",
+        "urun_adi": "NF0A4T2SZ1P1",
+        "adet": 1,
+        "koli_no": "D2-0125",
+        "urun_barkod": "194902448753",
+        "fisi_no": "BTI12345678",
+        "eski_stok": 0,
+        "yeni_stok": -1
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T10:43:33.993Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 4640,
+        "urun_adi": "NF0A4T2SZ1P1",
+        "eski_stok": 0,
+        "yeni_stok": -1,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 10
+  },
+  {
+    "fis_no": "BTI38896833318",
+    "urunler": [
+      {
+        "fis_no": "BTI38896833318",
+        "koli_no": "D1-0217",
+        "urun_barkod": "3515720019999",
+        "urun_adi": "MIV9336 7317",
+        "adet": 1,
+        "tarih": "15.10.2025 17:35:12",
+        "fisi_no": "BTI38896833318",
+        "eski_stok": 1,
+        "yeni_stok": 0
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T14:35:13.027Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 1,
+        "eski_stok": 1,
+        "yeni_stok": 0,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 11
+  },
+  {
+    "fis_no": "BTI38896833318",
+    "urunler": [
+      {
+        "fis_no": "BTI38896833318",
+        "koli_no": "D1-0217",
+        "urun_barkod": "3515720020001",
+        "urun_adi": "MIV9336 7318",
+        "adet": 1,
+        "tarih": "15.10.2025 17:35:15",
+        "fisi_no": "BTI38896833318",
+        "eski_stok": 2,
+        "yeni_stok": 1
+      }
+    ],
+    "kullanici_adi": "Sistem",
+    "tarih": "2025-10-15T14:35:16.040Z",
+    "stok_guncellemeleri": [
+      {
+        "urun_id": 2,
+        "eski_stok": 2,
+        "yeni_stok": 1,
+        "cikis_adet": 1
+      }
+    ],
+    "id": 12
+  }
+]

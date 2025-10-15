@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "kullanici_adi": "admin",
+    "sifre": "admin123",
+    "ad_soyad": "Admin Kullanıcı",
+    "email": "admin@example.com",
+    "rol": "admin",
+    "aktif": true,
+    "olusturma_tarihi": "2025-10-14T16:31:43.249Z"
+  }
+]
