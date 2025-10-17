@@ -46,11 +46,11 @@ export async function POST(request) {
     // Aynı barkod + koli kombinasyonu var mı kontrol et
     // Aynı barkod farklı kolilerde olabilir, ama aynı barkod + aynı koli olamaz
     const mevcutUrun = urunDB.getAll().find(u => 
-      u.barkod === yeniUrun.barkod && u.birim === yeniUrun.birim
+      u.barkod === yeniUrun.barkod && (u.koli === yeniUrun.koli || u.birim === yeniUrun.koli)
     );
     if (mevcutUrun) {
       return NextResponse.json(
-        { error: `Bu barkod (${yeniUrun.barkod}) zaten ${yeniUrun.birim} kolisinde kullanılıyor` },
+        { error: `Bu barkod (${yeniUrun.barkod}) zaten ${yeniUrun.koli || yeniUrun.birim} kolisinde kullanılıyor` },
         { status: 400 }
       );
     }

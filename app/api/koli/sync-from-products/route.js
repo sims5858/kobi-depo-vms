@@ -9,11 +9,18 @@ export async function POST(request) {
     const urunler = urunDB.getAll();
     console.log('Toplam ürün sayısı:', urunler.length);
     
-    // Koli numaralarını topla
+    // Koli numaralarını topla (hem koli hem birim field'larından)
     const koliNumaralari = new Set();
     urunler.forEach(urun => {
+      // koli field'ından
       if (urun.koli && urun.koli.trim() !== '') {
         koliNumaralari.add(urun.koli.trim());
+        console.log('Koli field\'ından bulundu:', urun.koli.trim());
+      }
+      // birim field'ından (eski veriler için)
+      if (urun.birim && urun.birim.trim() !== '' && !urun.koli) {
+        koliNumaralari.add(urun.birim.trim());
+        console.log('Birim field\'ından bulundu:', urun.birim.trim());
       }
     });
     

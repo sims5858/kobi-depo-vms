@@ -545,11 +545,17 @@ const UrunYonetimi = () => {
             const batchErrorCount = batch.length - (response.data.eklenen || response.data.importedCount || batch.length);
             totalErrorCount += batchErrorCount;
             
-            // Koli numaralarını topla
+            // Koli numaralarını topla (hem koli hem birim field'larından)
             batch.forEach(urun => {
+              // koli field'ından
               if (urun.koli && urun.koli.trim() !== '') {
                 koliNumaralari.add(urun.koli.trim());
-                console.log('Koli numarası toplandı:', urun.koli.trim());
+                console.log('Koli field\'ından toplandı:', urun.koli.trim());
+              }
+              // birim field'ından (eski veriler için)
+              if (urun.birim && urun.birim.trim() !== '' && !urun.koli) {
+                koliNumaralari.add(urun.birim.trim());
+                console.log('Birim field\'ından toplandı:', urun.birim.trim());
               }
             });
           }
