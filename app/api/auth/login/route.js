@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { kullaniciDB } from '../../../lib/persistent-database.js';
+import { kullaniciDB } from '../../../lib/kv-database.js';
 
 export async function POST(request) {
   try {
@@ -24,15 +24,16 @@ export async function POST(request) {
     
     // Kullanıcı veritabanını kontrol et
     console.log('Kullanıcı DB mevcut mu:', !!kullaniciDB);
-    console.log('Tüm kullanıcılar:', kullaniciDB.getAll());
+    const kullanicilar = await kullaniciDB.getAll();
+    console.log('Tüm kullanıcılar:', kullanicilar);
     
     // Kullanıcıyı bul - önce getByKullaniciAdi ile dene
-    let user = kullaniciDB.getByKullaniciAdi(kullanici_adi);
+    let user = await kullaniciDB.getByKullaniciAdi(kullanici_adi);
     console.log('getByKullaniciAdi ile bulunan kullanıcı:', user);
     
     // Eğer bulunamazsa getByUsername ile dene
     if (!user) {
-      user = kullaniciDB.getByUsername(kullanici_adi);
+      user = await kullaniciDB.getByUsername(kullanici_adi);
       console.log('getByUsername ile bulunan kullanıcı:', user);
     }
     

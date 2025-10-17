@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { koliDB, urunDB, aktiviteDB } from '../../lib/persistent-database.js';
+import { koliDB, urunDB, aktiviteDB } from '../../lib/kv-database.js';
 
 // GET - Tüm kolileri listele
 export async function GET() {
@@ -8,12 +8,12 @@ export async function GET() {
     console.log('Vercel ortamı:', process.env.VERCEL ? 'Evet' : 'Hayır');
     
     // Gerçek koli verilerini al
-    const koliListesi = koliDB.getAll();
+    const koliListesi = await koliDB.getAll();
     console.log('Koli DB getAll() sonucu:', koliListesi);
     console.log('Koli sayısı:', koliListesi.length);
     
     // Ürün verilerini al
-    const urunler = urunDB.getAll();
+    const urunler = await urunDB.getAll();
     console.log('Toplam ürün sayısı:', urunler.length);
     
     // Her koli için istatistikleri hesapla
@@ -112,7 +112,7 @@ export async function DELETE(request) {
     console.log('Silinecek koli ID:', id);
     
     // Koli var mı kontrol et
-    const koli = koliDB.getById(parseInt(id));
+    const koli = await koliDB.getById(parseInt(id));
     if (!koli) {
       return NextResponse.json(
         { error: 'Koli bulunamadı' },
@@ -121,11 +121,11 @@ export async function DELETE(request) {
     }
     
     // Koli sil
-    const silinenKoli = koliDB.delete(parseInt(id));
+    const silinenKoli = await koliDB.delete(parseInt(id));
     
     if (silinenKoli) {
       // Aktivite kaydet
-      aktiviteDB.add({
+      await aktiviteDB.add({
         mesaj: 'Koli silindi',
         detay: {
           koli_no: koli.koli_no,
