@@ -221,6 +221,24 @@ const UrunYonetimi = () => {
       } else {
         await axios.post('/api/urun', currentUrun);
         toast.success('Ürün başarıyla eklendi!');
+        
+        // Eğer koli numarası varsa, koli oluştur
+        if (currentUrun.koli && currentUrun.koli.trim() !== '') {
+          try {
+            console.log('Koli oluşturuluyor:', currentUrun.koli);
+            const koliResponse = await axios.post('/api/koli/bulk-import', {
+              koliNumaralari: [currentUrun.koli.trim()]
+            });
+            
+            if (koliResponse.data.success) {
+              console.log('Koli başarıyla oluşturuldu:', koliResponse.data);
+              toast.info(`Koli ${currentUrun.koli} koli yönetimine eklendi.`);
+            }
+          } catch (koliError) {
+            console.error('Koli oluşturulurken hata:', koliError);
+            // Koli oluşturma hatası kritik değil, sadece log'la
+          }
+        }
       }
       fetchUrunler();
       handleCloseModal();
@@ -1067,8 +1085,8 @@ const UrunYonetimi = () => {
               <Form.Label>Koli Numarası</Form.Label>
               <Form.Control
                 type="text"
-                name="birim"
-                value={currentUrun.birim}
+                name="koli"
+                value={currentUrun.koli}
                 onChange={handleChange}
                 placeholder="Örn: D1-0217"
               />
