@@ -61,9 +61,9 @@ export async function POST(request) {
 
     // Her ürün için stok güncelleme
     for (const urun of urunler) {
-      // Ürünü bul (barkod ve koli numarasına göre)
+      // Ürünü bul (barkod ve koli numarasına göre - hem koli hem birim field'larından)
       let mevcutUrun = urunDB.getAll().find(u => 
-        u.barkod === urun.urun_barkod && u.birim === urun.koli_no
+        u.barkod === urun.urun_barkod && (u.koli === urun.koli_no || u.birim === urun.koli_no)
       );
 
       // Eğer bulunamazsa, sadece barkod ile ara

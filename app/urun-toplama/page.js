@@ -22,9 +22,11 @@ const UrunToplama = () => {
   const [showFisModal, setShowFisModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [fisToDelete, setFisToDelete] = useState(null);
+  const [koliListesi, setKoliListesi] = useState([]);
 
   useEffect(() => {
     loadUrunListesi();
+    loadKoliListesi();
     loadToplamaListesi();
     loadFisGecmisi();
     // Yeni sipariş için BTI numarası oluştur
@@ -39,9 +41,23 @@ const UrunToplama = () => {
       if (response.ok) {
         const data = await response.json();
         setUrunListesi(data);
+        console.log('Ürün listesi güncellendi:', data.length, 'ürün');
       }
     } catch (error) {
       console.error('Ürün listesi yüklenirken hata:', error);
+    }
+  };
+
+  const loadKoliListesi = async () => {
+    try {
+      const response = await fetch('/api/koli');
+      if (response.ok) {
+        const data = await response.json();
+        setKoliListesi(data);
+        console.log('Koli listesi güncellendi:', data.length, 'koli');
+      }
+    } catch (error) {
+      console.error('Koli listesi yüklenirken hata:', error);
     }
   };
 
@@ -276,8 +292,9 @@ const UrunToplama = () => {
         } else {
           loadFisGecmisi();
         }
-        // Ürün listesini yenile (stok güncellemeleri için)
+        // Ürün ve koli listelerini yenile (stok güncellemeleri için)
         loadUrunListesi();
+        loadKoliListesi();
       } else {
         const errorData = await response.json();
         toast.error(`Fiş silinirken hata oluştu: ${errorData.error || 'Bilinmeyen hata'}`);
@@ -349,6 +366,10 @@ const UrunToplama = () => {
       setToplamaListesi([]);
       saveToplamaListesi([]);
       
+      // Ürün ve koli listelerini yenile (stok güncellemeleri için)
+      await loadUrunListesi();
+      await loadKoliListesi();
+      
       toast.success(`Sipariş tamamlandı! (${tamamlananSiparis.length} ürün - ${currentSiparisBTI}) Stoklar güncellendi. Yeni sipariş başlatıldı: ${yeniBTI}`);
     } catch (error) {
       console.error('Sipariş tamamlama hatası:', error);
@@ -391,8 +412,9 @@ const UrunToplama = () => {
           });
         }
         
-        // Ürün listesini yenile (stok güncellemeleri için)
+        // Ürün ve koli listelerini yenile (stok güncellemeleri için)
         await loadUrunListesi();
+        await loadKoliListesi();
       } else {
         const errorData = await response.json();
         console.error('Anında toplama hatası:', errorData);
