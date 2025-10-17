@@ -16,11 +16,17 @@ export async function DELETE(request, { params }) {
 
     // Fişi bul
     const toplamaFisiListesi = toplamaDB.getAll();
+    console.log('Toplam fiş sayısı:', toplamaFisiListesi.length);
+    console.log('Mevcut fişler:', toplamaFisiListesi.map(f => f.fis_no));
+    console.log('Aranan fiş numarası:', fis_no);
+    
     const fis = toplamaFisiListesi.find(f => f.fis_no === fis_no);
+    console.log('Bulunan fiş:', fis);
 
     if (!fis) {
+      console.log('Fiş bulunamadı! Mevcut fişler:', toplamaFisiListesi.map(f => f.fis_no));
       return NextResponse.json(
-        { error: 'Fiş bulunamadı' },
+        { error: `Fiş bulunamadı: ${fis_no}. Mevcut fişler: ${toplamaFisiListesi.map(f => f.fis_no).join(', ')}` },
         { status: 404 }
       );
     }

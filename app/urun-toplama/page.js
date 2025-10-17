@@ -76,23 +76,32 @@ const UrunToplama = () => {
     }
   };
 
-  // Fiş geçmişini localStorage'dan yükle
-  const loadFisGecmisi = () => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('fisGecmisi');
+  // Fiş geçmişini veritabanından yükle
+  const loadFisGecmisi = async () => {
+    try {
       console.log('=== FİŞ GEÇMİŞİ YÜKLEME DEBUG ===');
-      console.log('localStorage\'dan alınan:', saved);
-      if (saved) {
-        try {
-          const parsedList = JSON.parse(saved);
-          console.log('Parse edilen fiş geçmişi:', parsedList);
-          setFisGecmisi(parsedList);
-        } catch (error) {
-          console.error('Fiş geçmişi yüklenirken hata:', error);
-        }
+      const response = await fetch('/api/toplama-fisi');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Veritabanından alınan fişler:', data);
+        
+        // Veritabanındaki fişleri frontend formatına çevir
+        const formattedFisler = data.map(fis => ({
+          fisi_no: fis.fis_no, // Frontend'de fisi_no kullanılıyor
+          fis_no: fis.fis_no,  // API'de fis_no aranıyor
+          urun_sayisi: fis.urunler ? fis.urunler.length : 0,
+          toplam_adet: fis.urunler ? fis.urunler.reduce((sum, u) => sum + u.adet, 0) : 0,
+          tarih: fis.tarih ? new Date(fis.tarih).toLocaleString('tr-TR') : '',
+          urunler: fis.urunler || []
+        }));
+        
+        console.log('Formatlanmış fişler:', formattedFisler);
+        setFisGecmisi(formattedFisler);
       } else {
-        console.log('localStorage\'da fiş geçmişi bulunamadı');
+        console.error('Fiş geçmişi yüklenirken hata:', response.status);
       }
+    } catch (error) {
+      console.error('Fiş geçmişi yüklenirken hata:', error);
     }
   };
 
@@ -280,6 +289,9 @@ const UrunToplama = () => {
     if (!fisToDelete) return;
 
     try {
+      console.log('Silinecek fiş:', fisToDelete);
+      console.log('Fiş numarası:', fisToDelete.fisi_no);
+      
       const response = await fetch(`/api/toplama-fisi/${fisToDelete.fisi_no}`, {
         method: 'DELETE',
       });
@@ -290,7 +302,7 @@ const UrunToplama = () => {
         if (fisSorgulama.trim()) {
           handleFisSorgula();
         } else {
-          loadFisGecmisi();
+          await loadFisGecmisi();
         }
         // Ürün ve koli listelerini yenile (stok güncellemeleri için)
         loadUrunListesi();
@@ -341,22 +353,10 @@ const UrunToplama = () => {
         throw new Error(errorData.error || 'Sipariş tamamlanırken hata oluştu');
       }
 
-      // Tamamlanan siparişi fiş geçmişine ekle (en üste)
-      const yeniFisGecmisi = [
-        {
-          fisi_no: currentSiparisBTI,
-          urun_sayisi: tamamlananSiparis.length,
-          toplam_adet: tamamlananSiparis.reduce((sum, urun) => sum + urun.adet, 0),
-          tarih: new Date().toLocaleString('tr-TR'),
-          urunler: tamamlananSiparis
-        },
-        ...fisGecmisi
-      ];
-      console.log('=== FİŞ GEÇMİŞİ KAYDETME DEBUG ===');
+      // Fiş geçmişini veritabanından yeniden yükle
+      console.log('=== FİŞ GEÇMİŞİ YENİLEME DEBUG ===');
       console.log('Tamamlanan sipariş:', tamamlananSiparis);
-      console.log('Yeni fiş geçmişi:', yeniFisGecmisi);
-      setFisGecmisi(yeniFisGecmisi);
-      saveFisGecmisi(yeniFisGecmisi);
+      await loadFisGecmisi();
 
       // Yeni sipariş için yeni BTI numarası oluştur
       const yeniBTI = generateFisNumarasi();
