@@ -121,3 +121,60 @@ export async function PUT(request) {
     );
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Ürün ID gerekli' },
+        { status: 400 }
+      );
+    }
+    
+    console.log('=== ÜRÜN SİLME ===');
+    console.log('Silinecek ürün ID:', id);
+    
+    // Ürün var mı kontrol et
+    const urun = urunDB.getById(parseInt(id));
+    if (!urun) {
+      return NextResponse.json(
+        { error: 'Ürün bulunamadı' },
+        { status: 404 }
+      );
+    }
+    
+    // Ürün sil
+    const silinenUrun = urunDB.delete(parseInt(id));
+    
+    if (silinenUrun) {
+      // Aktivite kaydet
+      aktiviteDB.add({
+        mesaj: 'Ürün silindi',
+        detay: `${urun.urun_adi} (${urun.barkod}) silindi`,
+        tip: 'urun_silme'
+      });
+      
+      console.log('Ürün başarıyla silindi:', urun.urun_adi);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Ürün başarıyla silindi',
+        urun: silinenUrun
+      });
+    } else {
+      return NextResponse.json(
+        { error: 'Ürün silinemedi' },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('Ürün silme hatası:', error);
+    return NextResponse.json(
+      { error: 'Sunucu hatası: ' + error.message },
+      { status: 500 }
+    );
+  }
+}

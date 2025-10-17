@@ -274,10 +274,10 @@ const UrunYonetimi = () => {
     setLoading(true); // Loading state ekle
     
     try {
-      console.log('Silme API çağrısı yapılıyor:', `/api/urun/${id}`);
+      console.log('Silme API çağrısı yapılıyor:', `/api/urun?id=${id}`);
       
       // Daha kısa timeout ve daha basit istek
-      const response = await axios.delete(`/api/urun/${id}`, {
+      const response = await axios.delete(`/api/urun?id=${id}`, {
         timeout: 5000, // 5 saniye timeout (daha kısa)
         headers: {
           'Content-Type': 'application/json'
@@ -350,7 +350,7 @@ const UrunYonetimi = () => {
         
         try {
           const deletePromises = batch.map(id => 
-            axios.delete(`/api/urun/${id}`, {
+            axios.delete(`/api/urun?id=${id}`, {
               timeout: 5000 // 5 saniye timeout
             })
           );
