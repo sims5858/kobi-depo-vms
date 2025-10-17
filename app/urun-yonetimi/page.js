@@ -540,8 +540,10 @@ const UrunYonetimi = () => {
           });
           
           if (response.data.success) {
-            totalSuccessCount += response.data.eklenen || response.data.importedCount || 0;
-            totalErrorCount += response.data.hatali || response.data.errorCount || 0;
+            totalSuccessCount += response.data.eklenen || response.data.importedCount || batch.length;
+            // Hata sayısını batch boyutundan başarılı olanları çıkararak hesapla
+            const batchErrorCount = batch.length - (response.data.eklenen || response.data.importedCount || batch.length);
+            totalErrorCount += batchErrorCount;
             
             // Koli numaralarını topla
             batch.forEach(urun => {
@@ -593,6 +595,9 @@ const UrunYonetimi = () => {
       
       if (errorCount > 0) {
         toast.warning(`${errorCount} ürün eklenirken hata oluştu (muhtemelen barkod çakışması)`);
+      } else if (successCount > 0) {
+        // Eğer hata yoksa ve başarılı ekleme varsa, sadece başarı mesajı göster
+        console.log('Tüm ürünler başarıyla eklendi, hata yok');
       }
       
       setPreviewUrunler([]);

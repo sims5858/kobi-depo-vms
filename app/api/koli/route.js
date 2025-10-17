@@ -4,8 +4,17 @@ import { koliDB, urunDB, aktiviteDB } from '../../lib/persistent-database.js';
 // GET - Tüm kolileri listele
 export async function GET() {
   try {
+    console.log('=== KOLI API GET ===');
+    console.log('Vercel ortamı:', process.env.VERCEL ? 'Evet' : 'Hayır');
+    
     // Gerçek koli verilerini al
     const koliListesi = koliDB.getAll();
+    console.log('Koli DB getAll() sonucu:', koliListesi);
+    console.log('Koli sayısı:', koliListesi.length);
+    
+    if (koliListesi.length > 0) {
+      console.log('İlk 3 koli:', koliListesi.slice(0, 3));
+    }
     
     return NextResponse.json(koliListesi);
   } catch (error) {

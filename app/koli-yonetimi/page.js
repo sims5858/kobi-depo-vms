@@ -61,10 +61,14 @@ const KoliYonetimi = () => {
   const loadKoliListesi = async () => {
     setLoading(true);
     try {
+      console.log('=== KOLI LISTESI YUKLENIYOR ===');
       // Cache'i bypass etmek için timestamp ve random ekle
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(7);
-      const response = await fetch(`/api/koli?t=${timestamp}&r=${random}`, {
+      const url = `/api/koli?t=${timestamp}&r=${random}`;
+      console.log('API URL:', url);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -72,11 +76,25 @@ const KoliYonetimi = () => {
           'Expires': '0'
         }
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('API Response data:', data);
         setKoliListesi(data);
         console.log('Koli listesi yenilendi:', data.length, 'koli');
-        console.log('D2-0106 koli verisi:', data.find(k => k.koli_no === 'D2-0106'));
+        console.log('Tüm koliler:', data);
+        
+        // İlk 3 koliyi detaylı logla
+        if (data.length > 0) {
+          console.log('İlk 3 koli detayı:', data.slice(0, 3));
+        }
+      } else {
+        console.error('API response not ok:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
       }
     } catch (error) {
       console.error('Koli listesi yüklenirken hata:', error);
