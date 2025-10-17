@@ -2,8 +2,8 @@
 import fs from 'fs';
 import path from 'path';
 
-// Vercel'de /tmp klasörünü kullan, local'de data klasörünü kullan
-const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'data');
+// Her zaman data klasörünü kullan (Vercel'de de kalıcı olması için)
+const DATA_DIR = path.join(process.cwd(), 'data');
 const URUNLER_FILE = path.join(DATA_DIR, 'urunler.json');
 const KOLILER_FILE = path.join(DATA_DIR, 'koliler.json');
 const AKTIVITELER_FILE = path.join(DATA_DIR, 'aktiviteler.json');
@@ -11,40 +11,32 @@ const TRANSFER_FILE = path.join(DATA_DIR, 'transfer.json');
 const TOPLAMA_FILE = path.join(DATA_DIR, 'toplama.json');
 const KULLANICILAR_FILE = path.join(DATA_DIR, 'kullanicilar.json');
 
-// Vercel'de /tmp klasörünü oluştur
-if (process.env.VERCEL && !fs.existsSync('/tmp')) {
+// Data klasörünü oluştur
+if (!fs.existsSync(DATA_DIR)) {
   try {
-    fs.mkdirSync('/tmp', { recursive: true });
-    console.log('Vercel /tmp klasörü oluşturuldu');
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    console.log('Data klasörü oluşturuldu:', DATA_DIR);
   } catch (error) {
-    console.log('Vercel /tmp klasörü oluşturulamadı:', error.message);
+    console.log('Data klasörü oluşturulamadı:', error.message);
   }
 }
 
-// Vercel'de başlangıç verilerini dosyaya yaz
-if (process.env.VERCEL) {
-  try {
-    // Eğer dosyalar yoksa, default verileri yaz
-    if (!fs.existsSync(KULLANICILAR_FILE)) {
-      writeFile(KULLANICILAR_FILE, defaultKullanicilar);
-      console.log('Default kullanıcılar dosyaya yazıldı');
-    }
-    if (!fs.existsSync(KOLILER_FILE)) {
-      writeFile(KOLILER_FILE, defaultKoliler);
-      console.log('Default koliler dosyaya yazıldı');
-    }
-    if (!fs.existsSync(URUNLER_FILE)) {
-      writeFile(URUNLER_FILE, defaultUrunler);
-      console.log('Default ürünler dosyaya yazıldı');
-    }
-  } catch (error) {
-    console.log('Vercel başlangıç verileri yazılırken hata:', error.message);
+// Başlangıç verilerini dosyaya yaz (eğer dosyalar yoksa)
+try {
+  if (!fs.existsSync(KULLANICILAR_FILE)) {
+    writeFile(KULLANICILAR_FILE, defaultKullanicilar);
+    console.log('Default kullanıcılar dosyaya yazıldı');
   }
-}
-
-// Data klasörünü oluştur (sadece local'de)
-if (!process.env.VERCEL && !fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(KOLILER_FILE)) {
+    writeFile(KOLILER_FILE, defaultKoliler);
+    console.log('Default koliler dosyaya yazıldı');
+  }
+  if (!fs.existsSync(URUNLER_FILE)) {
+    writeFile(URUNLER_FILE, defaultUrunler);
+    console.log('Default ürünler dosyaya yazıldı');
+  }
+} catch (error) {
+  console.log('Başlangıç verileri yazılırken hata:', error.message);
 }
 
 // Dosyaları oku
@@ -60,22 +52,16 @@ function readFile(filePath, defaultValue = []) {
   return defaultValue;
 }
 
-// Dosyaya yaz (Vercel uyumlu)
+// Dosyaya yaz
 function writeFile(filePath, data) {
   try {
-    // Vercel'de sadece /tmp klasörüne yazabiliriz
-    if (process.env.VERCEL) {
-      if (!filePath.startsWith('/tmp')) {
-        console.log(`Vercel'de dosya yazma atlandı: ${filePath}`);
-        return true; // Hata vermeden devam et
-      }
-      // /tmp klasörünün var olduğundan emin ol
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+    // Klasörün var olduğundan emin ol
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+    console.log(`Dosya yazıldı: ${filePath}`);
     return true;
   } catch (error) {
     console.error(`Dosya yazma hatası ${filePath}:`, error);
