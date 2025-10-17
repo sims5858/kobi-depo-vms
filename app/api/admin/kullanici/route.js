@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { kullaniciDB } = require('../../../lib/persistent-database');
+import { kullaniciDB } from '../../../lib/persistent-database.js';
 
 export async function GET() {
   try {

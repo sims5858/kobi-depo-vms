@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-const { urunDB, koliDB, aktiviteDB } = require('../../../lib/persistent-database');
+import { urunDB, koliDB, aktiviteDB } from '../../../lib/persistent-database.js';
 
 // Helper function to find column value with multiple possible names
 function findColumnValue(row, possibleNames) {

@@ -1,8 +1,9 @@
-// Kalıcı veritabanı - JSON dosyası tabanlı
+// Vercel uyumlu veritabanı - JSON dosyası tabanlı
 import fs from 'fs';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+// Vercel'de /tmp klasörünü kullan, local'de data klasörünü kullan
+const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'data');
 const URUNLER_FILE = path.join(DATA_DIR, 'urunler.json');
 const KOLILER_FILE = path.join(DATA_DIR, 'koliler.json');
 const AKTIVITELER_FILE = path.join(DATA_DIR, 'aktiviteler.json');
@@ -10,8 +11,17 @@ const TRANSFER_FILE = path.join(DATA_DIR, 'transfer.json');
 const TOPLAMA_FILE = path.join(DATA_DIR, 'toplama.json');
 const KULLANICILAR_FILE = path.join(DATA_DIR, 'kullanicilar.json');
 
-// Data klasörünü oluştur
-if (!fs.existsSync(DATA_DIR)) {
+// Vercel'de /tmp klasörünü oluştur
+if (process.env.VERCEL && !fs.existsSync('/tmp')) {
+  try {
+    fs.mkdirSync('/tmp', { recursive: true });
+  } catch (error) {
+    console.log('Vercel /tmp klasörü oluşturulamadı:', error.message);
+  }
+}
+
+// Data klasörünü oluştur (sadece local'de)
+if (!process.env.VERCEL && !fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
@@ -28,9 +38,21 @@ function readFile(filePath, defaultValue = []) {
   return defaultValue;
 }
 
-// Dosyaya yaz
+// Dosyaya yaz (Vercel uyumlu)
 function writeFile(filePath, data) {
   try {
+    // Vercel'de sadece /tmp klasörüne yazabiliriz
+    if (process.env.VERCEL) {
+      if (!filePath.startsWith('/tmp')) {
+        console.log(`Vercel'de dosya yazma atlandı: ${filePath}`);
+        return true; // Hata vermeden devam et
+      }
+      // /tmp klasörünün var olduğundan emin ol
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    }
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
     return true;
   } catch (error) {
@@ -91,7 +113,12 @@ const defaultKullanicilar = [
 // Veritabanı sınıfları
 class UrunDB {
   constructor() {
-    this.data = readFile(URUNLER_FILE, defaultUrunler);
+    // Vercel'de memory-based, local'de file-based
+    if (process.env.VERCEL) {
+      this.data = [...defaultUrunler];
+    } else {
+      this.data = readFile(URUNLER_FILE, defaultUrunler);
+    }
     this.nextId = Math.max(...this.data.map(u => u.id), 0) + 1;
   }
 
@@ -140,13 +167,21 @@ class UrunDB {
   }
 
   save() {
-    writeFile(URUNLER_FILE, this.data);
+    // Vercel'de dosya yazma işlemini atla
+    if (!process.env.VERCEL) {
+      writeFile(URUNLER_FILE, this.data);
+    }
   }
 }
 
 class KoliDB {
   constructor() {
-    this.data = readFile(KOLILER_FILE, defaultKoliler);
+    // Vercel'de memory-based, local'de file-based
+    if (process.env.VERCEL) {
+      this.data = [...defaultKoliler];
+    } else {
+      this.data = readFile(KOLILER_FILE, defaultKoliler);
+    }
     this.nextId = Math.max(...this.data.map(k => k.id), 0) + 1;
   }
 
@@ -196,13 +231,21 @@ class KoliDB {
   }
 
   save() {
-    writeFile(KOLILER_FILE, this.data);
+    // Vercel'de dosya yazma işlemini atla
+    if (!process.env.VERCEL) {
+      writeFile(KOLILER_FILE, this.data);
+    }
   }
 }
 
 class AktiviteDB {
   constructor() {
-    this.data = readFile(AKTIVITELER_FILE, []);
+    // Vercel'de memory-based, local'de file-based
+    if (process.env.VERCEL) {
+      this.data = [];
+    } else {
+      this.data = readFile(AKTIVITELER_FILE, []);
+    }
     this.nextId = Math.max(...this.data.map(a => a.id), 0) + 1;
   }
 
@@ -222,13 +265,21 @@ class AktiviteDB {
   }
 
   save() {
-    writeFile(AKTIVITELER_FILE, this.data);
+    // Vercel'de dosya yazma işlemini atla
+    if (!process.env.VERCEL) {
+      writeFile(AKTIVITELER_FILE, this.data);
+    }
   }
 }
 
 class TransferDB {
   constructor() {
-    this.data = readFile(TRANSFER_FILE, []);
+    // Vercel'de memory-based, local'de file-based
+    if (process.env.VERCEL) {
+      this.data = [];
+    } else {
+      this.data = readFile(TRANSFER_FILE, []);
+    }
     this.nextId = Math.max(...this.data.map(t => t.id), 0) + 1;
   }
 
@@ -248,13 +299,21 @@ class TransferDB {
   }
 
   save() {
-    writeFile(TRANSFER_FILE, this.data);
+    // Vercel'de dosya yazma işlemini atla
+    if (!process.env.VERCEL) {
+      writeFile(TRANSFER_FILE, this.data);
+    }
   }
 }
 
 class ToplamaDB {
   constructor() {
-    this.data = readFile(TOPLAMA_FILE, []);
+    // Vercel'de memory-based, local'de file-based
+    if (process.env.VERCEL) {
+      this.data = [];
+    } else {
+      this.data = readFile(TOPLAMA_FILE, []);
+    }
     this.nextId = Math.max(...this.data.map(t => t.id), 0) + 1;
   }
 
@@ -284,13 +343,21 @@ class ToplamaDB {
   }
 
   save() {
-    writeFile(TOPLAMA_FILE, this.data);
+    // Vercel'de dosya yazma işlemini atla
+    if (!process.env.VERCEL) {
+      writeFile(TOPLAMA_FILE, this.data);
+    }
   }
 }
 
 class KullaniciDB {
   constructor() {
-    this.data = readFile(KULLANICILAR_FILE, defaultKullanicilar);
+    // Vercel'de memory-based, local'de file-based
+    if (process.env.VERCEL) {
+      this.data = [...defaultKullanicilar];
+    } else {
+      this.data = readFile(KULLANICILAR_FILE, defaultKullanicilar);
+    }
     this.nextId = Math.max(...this.data.map(k => k.id), 0) + 1;
   }
 
@@ -304,6 +371,10 @@ class KullaniciDB {
 
   getByUsername(username) {
     return this.data.find(k => k.kullanici_adi === username);
+  }
+
+  getByKullaniciAdi(kullanici_adi) {
+    return this.data.find(k => k.kullanici_adi === kullanici_adi && k.aktif === true);
   }
 
   findByUsername(username) {
@@ -346,7 +417,10 @@ class KullaniciDB {
   }
 
   save() {
-    writeFile(KULLANICILAR_FILE, this.data);
+    // Vercel'de dosya yazma işlemini atla
+    if (!process.env.VERCEL) {
+      writeFile(KULLANICILAR_FILE, this.data);
+    }
   }
 }
 
@@ -358,7 +432,7 @@ const transferDB = new TransferDB();
 const toplamaDB = new ToplamaDB();
 const kullaniciDB = new KullaniciDB();
 
-module.exports = {
+export {
   urunDB,
   koliDB,
   aktiviteDB,

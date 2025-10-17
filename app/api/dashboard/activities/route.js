@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { aktiviteDB } = require('../../../lib/persistent-database');
+import { aktiviteDB } from '../../../lib/persistent-database.js';
 
 export async function GET() {
   try {

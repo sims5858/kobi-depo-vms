@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { koliDB, urunDB, aktiviteDB } = require('../../lib/persistent-database');
+import { koliDB, urunDB, aktiviteDB } from '../../lib/persistent-database.js';
 
 // GET - Tüm kolileri listele
 export async function GET() {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { koliDB } = require('../../lib/persistent-database');
+import { koliDB } from '../../lib/persistent-database.js';
 
 export async function GET() {
   try {

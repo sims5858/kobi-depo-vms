@@ -19,6 +19,9 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   
+  // Vercel için output ayarları
+  output: 'standalone',
+  
   // Webpack config
   webpack: (config, { dev, isServer }) => {
     // Browser extension'larından gelen değişiklikleri görmezden gel
@@ -26,8 +29,18 @@ const nextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
+        path: false,
       };
     }
+    
+    // Vercel için optimizasyonlar
+    if (process.env.VERCEL) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        fs: false,
+      };
+    }
+    
     return config;
   },
 }

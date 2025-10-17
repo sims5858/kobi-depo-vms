@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
-const { kullaniciDB } = require('../../../lib/persistent-database');
+import { kullaniciDB } from '../../../lib/persistent-database.js';
 
 export async function POST(request) {
   try {
-    const { kullanici_adi, sifre } = await request.json();
+    console.log('=== LOGIN API BAŞLADI ===');
+    console.log('Vercel ortamı:', process.env.VERCEL ? 'Evet' : 'Hayır');
+    
+    const body = await request.json();
+    console.log('Gelen request body:', body);
+    
+    const { kullanici_adi, sifre } = body;
 
     if (!kullanici_adi || !sifre) {
+      console.log('Eksik parametreler:', { kullanici_adi: !!kullanici_adi, sifre: !!sifre });
       return NextResponse.json(
         { success: false, error: 'Kullanıcı adı ve şifre gerekli' },
         { status: 400 }
@@ -15,8 +22,13 @@ export async function POST(request) {
     console.log('=== LOGIN DEBUG ===');
     console.log('Giriş yapılmaya çalışılan kullanıcı:', kullanici_adi);
     
+    // Kullanıcı veritabanını kontrol et
+    console.log('Kullanıcı DB mevcut mu:', !!kullaniciDB);
+    console.log('Tüm kullanıcılar:', kullaniciDB.getAll());
+    
     // Kullanıcıyı bul
     const user = kullaniciDB.getByKullaniciAdi(kullanici_adi);
+    console.log('Bulunan kullanıcı:', user);
     
     if (!user) {
       console.log('Kullanıcı bulunamadı veya aktif değil');
@@ -41,23 +53,28 @@ export async function POST(request) {
     const userData = {
       id: user.id,
       kullanici_adi: user.kullanici_adi,
-      ad_soyad: user.ad_soyad,
-      email: user.email,
-      rol: user.rol,
-      aktif: user.aktif
+      ad_soyad: user.ad_soyad || 'Admin Kullanıcı',
+      email: user.email || 'admin@example.com',
+      rol: user.rol || 'admin',
+      aktif: user.aktif !== false
     };
 
-    return NextResponse.json({
+    const response = {
       success: true,
       token: `token-${user.id}-${Date.now()}`,
       user: userData,
       message: 'Giriş başarılı'
-    });
+    };
+
+    console.log('Login başarılı, response:', response);
+    return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Login API hatası:', error);
+    console.error('=== LOGIN API HATASI ===');
+    console.error('Hata detayı:', error);
+    console.error('Hata stack:', error.stack);
     return NextResponse.json(
-      { success: false, error: 'Sunucu hatası' },
+      { success: false, error: 'Sunucu hatası: ' + error.message },
       { status: 500 }
     );
   }

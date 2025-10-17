@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { urunDB, aktiviteDB } = require('../../../lib/persistent-database');
+import { urunDB, aktiviteDB } from '../../../lib/persistent-database.js';
 
 export async function DELETE(request, { params }) {
   try {

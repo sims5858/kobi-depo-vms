@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const { transferDB, urunDB, koliDB, aktiviteDB } = require('../../lib/persistent-database');
+import { transferDB, urunDB, koliDB, aktiviteDB } from '../../lib/persistent-database.js';
 
 export async function GET() {
   try {
