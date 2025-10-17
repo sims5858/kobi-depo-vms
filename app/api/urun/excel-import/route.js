@@ -67,11 +67,13 @@ export async function POST(request) {
         const stok_miktari = findColumnValue(urun, ['Stok Miktarı', 'Stok Miktari', 'stok_miktari', 'Stok_Miktari', 'STOK_MIKTARI', 'miktar', 'Miktar', 'Quantity', 'QUANTITY', 'qty', 'Qty', 'ADET', 'Adet', 'adet']);
         const aciklama = findColumnValue(urun, ['Açıklama', 'Aciklama', 'aciklama', 'ACIKLAMA', 'Description', 'DESCRIPTION', 'desc', 'Desc']);
         
+        console.log('Stok miktarı raw değeri:', stok_miktari, 'Tip:', typeof stok_miktari);
+        
         const yeniUrun = {
           barkod: barkod || '',
           urun_adi: urun_adi || '',
           birim: birim || '',
-          stok_miktari: parseInt(stok_miktari) || 1, // Varsayılan stok miktarı 1
+          stok_miktari: stok_miktari !== '' && stok_miktari !== null && stok_miktari !== undefined ? parseInt(stok_miktari) : 0, // 0 değeri korunur
           birim_fiyat: 0,
           aciklama: aciklama || ''
         };
@@ -128,11 +130,13 @@ export async function POST(request) {
         const stok_miktari = findColumnValue(urun, ['Stok Miktarı', 'Stok Miktari', 'stok_miktari', 'Stok_Miktari', 'STOK_MIKTARI', 'miktar', 'Miktar', 'Quantity', 'QUANTITY', 'qty', 'Qty', 'ADET', 'Adet', 'adet']);
         const aciklama = findColumnValue(urun, ['aciklama', 'Aciklama', 'ACIKLAMA', 'Açıklama', 'Aciklama', 'açıklama', 'Description', 'DESCRIPTION', 'desc', 'Desc']);
         
+        console.log('Preview - Stok miktarı raw değeri:', stok_miktari, 'Tip:', typeof stok_miktari);
+        
         const result = {
           barkod: barkod || '',
           urun_adi: urun_adi || '',
           birim: birim || '',
-          stok_miktari: parseInt(stok_miktari) || 0,
+          stok_miktari: stok_miktari !== '' && stok_miktari !== null && stok_miktari !== undefined ? parseInt(stok_miktari) : 0, // 0 değeri korunur
           birim_fiyat: 0,
           aciklama: aciklama || ''
         };
