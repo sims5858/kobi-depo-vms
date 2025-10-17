@@ -223,6 +223,43 @@ const KoliYonetimi = () => {
     }
   };
 
+  const handleSyncFromProducts = async () => {
+    setLoading(true);
+    try {
+      console.log('=== URUNLERDEN KOLI OLUSTURMA BASLIYOR ===');
+      
+      const response = await fetch('/api/koli/sync-from-products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Sync response:', result);
+        
+        if (result.success) {
+          toast.success(`${result.eklenen} koli ürünlerden oluşturuldu!`);
+          if (result.zaten_var > 0) {
+            toast.info(`${result.zaten_var} koli zaten mevcuttu.`);
+          }
+          loadKoliListesi();
+        } else {
+          toast.error('Koli oluşturma başarısız: ' + result.error);
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error('Koli oluşturma hatası: ' + (errorData.error || 'Bilinmeyen bir hata oluştu.'));
+      }
+    } catch (error) {
+      console.error('Ürünlerden koli oluşturma hatası:', error);
+      toast.error('Ürünlerden koli oluşturma sırasında bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleModalClose = () => {
     setShowModal(false);
     setFormData({ koli_no: '', lokasyon: '', kapasite: '', aciklama: '' });
@@ -373,6 +410,10 @@ const KoliYonetimi = () => {
               Seçilenleri Sil ({selectedKoliler.length})
             </Button>
           )}
+          <Button variant="success" onClick={handleSyncFromProducts} disabled={loading}>
+            <BiPackage className="me-1" />
+            Ürünlerden Koli Oluştur
+          </Button>
           <Button variant="primary" onClick={() => setShowModal(true)}>
             <BiPlus className="me-1" />
             Yeni Koli

@@ -549,6 +549,7 @@ const UrunYonetimi = () => {
             batch.forEach(urun => {
               if (urun.koli && urun.koli.trim() !== '') {
                 koliNumaralari.add(urun.koli.trim());
+                console.log('Koli numarası toplandı:', urun.koli.trim());
               }
             });
           }
@@ -571,18 +572,29 @@ const UrunYonetimi = () => {
       
       // Koli numaralarını koli yönetimine ekle (toplu)
       if (koliNumaralari.size > 0) {
+        console.log('=== KOLI OLUSTURMA BASLIYOR ===');
         console.log(`${koliNumaralari.size} koli numarası ekleniyor...`);
+        console.log('Koli numaraları:', Array.from(koliNumaralari));
+        
         try {
           const response = await axios.post('/api/koli/bulk-import', {
             koliNumaralari: Array.from(koliNumaralari)
           });
           
+          console.log('Koli bulk-import response:', response.data);
+          
           if (response.data.success) {
             console.log(`${response.data.eklenen} koli başarıyla eklendi`);
+            console.log('Eklenen koliler:', response.data.eklenen_koliler);
+          } else {
+            console.error('Koli ekleme başarısız:', response.data);
           }
         } catch (error) {
           console.error('Koli eklenirken hata:', error);
+          console.error('Error response:', error.response?.data);
         }
+      } else {
+        console.log('Hiç koli numarası bulunamadı');
       }
       
       if (successCount > 0) {

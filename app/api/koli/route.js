@@ -65,3 +65,64 @@ export async function POST(request) {
     );
   }
 }
+
+// DELETE - Koli sil
+export async function DELETE(request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Koli ID gerekli' },
+        { status: 400 }
+      );
+    }
+    
+    console.log('=== KOLI SILME ===');
+    console.log('Silinecek koli ID:', id);
+    
+    // Koli var mı kontrol et
+    const koli = koliDB.getById(parseInt(id));
+    if (!koli) {
+      return NextResponse.json(
+        { error: 'Koli bulunamadı' },
+        { status: 404 }
+      );
+    }
+    
+    // Koli sil
+    const silinenKoli = koliDB.delete(parseInt(id));
+    
+    if (silinenKoli) {
+      // Aktivite kaydet
+      aktiviteDB.add({
+        mesaj: 'Koli silindi',
+        detay: {
+          koli_no: koli.koli_no,
+          lokasyon: koli.lokasyon
+        },
+        tip: 'koli_silme'
+      });
+      
+      console.log('Koli başarıyla silindi:', koli.koli_no);
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Koli başarıyla silindi',
+        koli: silinenKoli
+      });
+    } else {
+      return NextResponse.json(
+        { error: 'Koli silinemedi' },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('Koli silme hatası:', error);
+    return NextResponse.json(
+      { error: 'Sunucu hatası: ' + error.message },
+      { status: 500 }
+    );
+  }
+}
