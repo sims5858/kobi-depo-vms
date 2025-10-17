@@ -68,8 +68,16 @@ const UrunYonetimi = () => {
   const groupProductsByBarcode = (products) => {
     const grouped = {};
     products.forEach(product => {
-      if (!grouped[product.barkod]) {
-        grouped[product.barkod] = {
+      // Barkod null veya undefined ise atla
+      if (!product.barkod) {
+        console.warn('Barkod bulunamadı, ürün atlanıyor:', product);
+        return;
+      }
+      
+      const barkodKey = String(product.barkod);
+      
+      if (!grouped[barkodKey]) {
+        grouped[barkodKey] = {
           ...product,
           koliListesi: [],
           koliDetaylari: [], // Her koli için detay bilgisi
@@ -79,14 +87,14 @@ const UrunYonetimi = () => {
       
       // Koli numarası varsa ekle
       if (product.birim) {
-        grouped[product.barkod].koliListesi.push(product.birim);
-        grouped[product.barkod].koliDetaylari.push({
+        grouped[barkodKey].koliListesi.push(product.birim);
+        grouped[barkodKey].koliDetaylari.push({
           koliNo: product.birim,
           stokMiktari: product.stok_miktari
         });
       }
       
-      grouped[product.barkod].toplamStok += product.stok_miktari;
+      grouped[barkodKey].toplamStok += product.stok_miktari || 0;
     });
     return Object.values(grouped);
   };
@@ -101,8 +109,8 @@ const UrunYonetimi = () => {
     console.log('Arama terimi:', searchTerm);
     
     const results = urunListesi.filter(urun =>
-      urun.urun_adi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      urun.barkod.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (urun.urun_adi && urun.urun_adi.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (urun.barkod && String(urun.barkod).toLowerCase().includes(searchTerm.toLowerCase())) ||
       (urun.birim && urun.birim.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (urun.aciklama && urun.aciklama.toLowerCase().includes(searchTerm.toLowerCase()))
     );
