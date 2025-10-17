@@ -105,7 +105,10 @@ const defaultKullanicilar = [
     id: 1,
     kullanici_adi: 'admin',
     sifre: 'admin123',
+    ad_soyad: 'Admin Kullanıcı',
+    email: 'admin@example.com',
     rol: 'admin',
+    aktif: true,
     olusturma_tarihi: new Date().toISOString()
   }
 ];

@@ -26,9 +26,18 @@ export async function POST(request) {
     console.log('Kullanıcı DB mevcut mu:', !!kullaniciDB);
     console.log('Tüm kullanıcılar:', kullaniciDB.getAll());
     
-    // Kullanıcıyı bul
-    const user = kullaniciDB.getByKullaniciAdi(kullanici_adi);
-    console.log('Bulunan kullanıcı:', user);
+    // Kullanıcıyı bul - önce getByKullaniciAdi ile dene
+    let user = kullaniciDB.getByKullaniciAdi(kullanici_adi);
+    console.log('getByKullaniciAdi ile bulunan kullanıcı:', user);
+    
+    // Eğer bulunamazsa getByUsername ile dene
+    if (!user) {
+      user = kullaniciDB.getByUsername(kullanici_adi);
+      console.log('getByUsername ile bulunan kullanıcı:', user);
+    }
+    
+    console.log('Final kullanıcı:', user);
+    console.log('Kullanıcı aktif mi:', user ? user.aktif : 'Kullanıcı bulunamadı');
     
     if (!user) {
       console.log('Kullanıcı bulunamadı veya aktif değil');
