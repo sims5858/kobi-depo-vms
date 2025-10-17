@@ -23,6 +23,7 @@ const UrunToplama = () => {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [fisToDelete, setFisToDelete] = useState(null);
   const [koliListesi, setKoliListesi] = useState([]);
+  const [scanningStep, setScanningStep] = useState('koli'); // 'koli' veya 'urun'
 
   useEffect(() => {
     loadUrunListesi();
@@ -163,7 +164,7 @@ const UrunToplama = () => {
     }
   };
 
-  // Otomatik barkod algılama
+  // Otomatik barkod algılama - iki aşamalı
   const handleBarkodInput = (e) => {
     const value = e.target.value;
     const currentTime = Date.now();
@@ -185,10 +186,33 @@ const UrunToplama = () => {
       // 100ms sonra kontrol et - eğer input değişmemişse barkod okuyucu olabilir
       setTimeout(() => {
         if (value.length >= 8) {
-          console.log('Otomatik barkod algılandı:', value);
-          handleBarkodArama(value);
+          console.log('Otomatik barkod algılandı:', value, 'Aşama:', scanningStep);
+          handleTwoStepScanning(value);
         }
       }, 100);
+    }
+  };
+
+  // İki aşamalı barkod okuma sistemi
+  const handleTwoStepScanning = (barkod) => {
+    console.log('=== İKİ AŞAMALI BARKOD OKUMA ===');
+    console.log('Okunan barkod:', barkod);
+    console.log('Mevcut aşama:', scanningStep);
+    
+    if (scanningStep === 'koli') {
+      // İlk aşama: Koli numarası
+      console.log('Koli numarası olarak algılandı:', barkod);
+      setActiveKoli(barkod);
+      setScanningStep('urun');
+      toast.info(`Koli numarası: ${barkod} - Şimdi ürün barkodunu okutun`);
+      setInput(''); // Input'u temizle
+    } else if (scanningStep === 'urun') {
+      // İkinci aşama: Ürün barkodu
+      console.log('Ürün barkodu olarak algılandı:', barkod);
+      handleBarkodArama(barkod);
+      // İşlem tamamlandıktan sonra tekrar koli aşamasına dön
+      setScanningStep('koli');
+      setInput(''); // Input'u temizle
     }
   };
 
@@ -196,7 +220,18 @@ const UrunToplama = () => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleBarkodArama();
+      if (scanningStep === 'koli') {
+        // Manuel koli numarası girişi
+        setActiveKoli(input.trim());
+        setScanningStep('urun');
+        toast.info(`Koli numarası: ${input.trim()} - Şimdi ürün barkodunu girin`);
+        setInput('');
+      } else {
+        // Manuel ürün barkodu girişi
+        handleBarkodArama();
+        setScanningStep('koli');
+        setInput('');
+      }
     }
   };
 
@@ -205,6 +240,7 @@ const UrunToplama = () => {
     
     console.log('=== TOPLAMA BARKOD ARAMA DEBUG ===');
     console.log('Aranan barkod:', barkod);
+    console.log('Aktif koli:', activeKoli);
     console.log('Ürün listesi uzunluğu:', urunListesi.length);
     console.log('İlk 3 ürünün barkodları:', urunListesi.slice(0, 3).map(u => u.barkod));
     
@@ -213,11 +249,23 @@ const UrunToplama = () => {
       return;
     }
 
-    // Barkod arama - daha esnek karşılaştırma
+    if (!activeKoli || activeKoli.trim() === '') {
+      toast.error('Önce koli numarasını girin');
+      return;
+    }
+
+    // Barkod ve koli numarasına göre ürün arama
     const urun = urunListesi.find(u => {
       const urunBarkod = String(u.barkod).trim();
       const arananBarkod = String(barkod).trim();
-      return urunBarkod === arananBarkod;
+      const barkodMatch = urunBarkod === arananBarkod;
+      
+      // Koli numarası kontrolü (hem koli hem birim field'larından)
+      const koliMatch = (u.koli === activeKoli.trim()) || (u.birim === activeKoli.trim());
+      
+      console.log(`Ürün ${u.barkod}: barkodMatch=${barkodMatch}, koliMatch=${koliMatch}, koli=${u.koli}, birim=${u.birim}`);
+      
+      return barkodMatch && koliMatch;
     });
     
     console.log('Bulunan ürün:', urun);
@@ -482,22 +530,33 @@ const UrunToplama = () => {
             <Card.Body>
               <Form.Group className="mb-3">
                 <Form.Label>Koli No</Form.Label>
-                <Form.Control
-                  type="text"
+                <Form.Select
                   value={activeKoli}
                   onChange={(e) => setActiveKoli(e.target.value)}
-                  placeholder="Koli numarasını girin"
-                />
+                >
+                  <option value="">Koli seçin...</option>
+                  {koliListesi.map(koli => (
+                    <option key={koli.id} value={koli.koli_no}>
+                      {koli.koli_no} ({koli.urun_sayisi} ürün)
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Text className="text-muted">
+                  Veya manuel olarak koli numarası girebilirsiniz
+                </Form.Text>
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>
-                  Barkod 
+                  {scanningStep === 'koli' ? 'Koli Barkodu' : 'Ürün Barkodu'}
                   {isScanning && (
                     <Badge bg="success" className="ms-2">
                       Tarama Modu
                     </Badge>
                   )}
+                  <Badge bg={scanningStep === 'koli' ? 'primary' : 'warning'} className="ms-2">
+                    {scanningStep === 'koli' ? '1. Aşama: Koli' : '2. Aşama: Ürün'}
+                  </Badge>
                 </Form.Label>
                 <InputGroup>
                   <Form.Control
@@ -505,17 +564,33 @@ const UrunToplama = () => {
                     value={input}
                     onChange={handleBarkodInput}
                     onKeyPress={handleKeyPress}
-                    placeholder="Barkod girin veya tarayın"
+                    placeholder={scanningStep === 'koli' ? 'Koli barkodunu okutun' : 'Ürün barkodunu okutun'}
                     autoFocus
                     style={{
                       borderColor: isScanning ? '#28a745' : undefined,
                       boxShadow: isScanning ? '0 0 0 0.2rem rgba(40, 167, 69, 0.25)' : undefined
                     }}
                   />
-                  <Button variant="primary" onClick={handleBarkodArama}>
+                  <Button variant="primary" onClick={() => {
+                    if (scanningStep === 'koli') {
+                      setActiveKoli(input.trim());
+                      setScanningStep('urun');
+                      toast.info(`Koli numarası: ${input.trim()} - Şimdi ürün barkodunu girin`);
+                      setInput('');
+                    } else {
+                      handleBarkodArama();
+                      setScanningStep('koli');
+                      setInput('');
+                    }
+                  }}>
                     <BiSearch />
                   </Button>
                 </InputGroup>
+                {activeKoli && (
+                  <Form.Text className="text-success">
+                    <strong>Aktif Koli:</strong> {activeKoli}
+                  </Form.Text>
+                )}
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -529,17 +604,16 @@ const UrunToplama = () => {
               </Form.Group>
 
               <Alert variant="success" className="small">
-                <strong>Anında İşlem:</strong><br />
-                1. Koli numarasını girin<br />
-                2. Barkodu tarayın (otomatik algılanır) veya manuel girin<br />
-                3. Adeti ayarlayın<br />
-                4. <strong>İşlem otomatik tamamlanır!</strong><br />
+                <strong>İki Aşamalı Barkod Okuma:</strong><br />
+                1. <strong>Koli Barkodu:</strong> İlk barkodu okutun (koli numarası)<br />
+                2. <strong>Ürün Barkodu:</strong> İkinci barkodu okutun (ürün barkodu)<br />
+                3. <strong>İşlem otomatik tamamlanır!</strong><br />
                 <br />
                 <strong>Otomatik Tarama:</strong><br />
                 • Barkod okuyucu 8+ karakter girince otomatik algılanır<br />
                 • "Tarama Modu" yazısı görünür<br />
                 • Manuel giriş için Enter tuşuna basın<br />
-                • <strong>Her barkod girişi anında işlenir</strong>
+                • <strong>Her işlem sonrası tekrar koli aşamasına döner</strong>
               </Alert>
             </Card.Body>
           </Card>
