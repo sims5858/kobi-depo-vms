@@ -15,8 +15,30 @@ const KULLANICILAR_FILE = path.join(DATA_DIR, 'kullanicilar.json');
 if (process.env.VERCEL && !fs.existsSync('/tmp')) {
   try {
     fs.mkdirSync('/tmp', { recursive: true });
+    console.log('Vercel /tmp klasörü oluşturuldu');
   } catch (error) {
     console.log('Vercel /tmp klasörü oluşturulamadı:', error.message);
+  }
+}
+
+// Vercel'de başlangıç verilerini dosyaya yaz
+if (process.env.VERCEL) {
+  try {
+    // Eğer dosyalar yoksa, default verileri yaz
+    if (!fs.existsSync(KULLANICILAR_FILE)) {
+      writeFile(KULLANICILAR_FILE, defaultKullanicilar);
+      console.log('Default kullanıcılar dosyaya yazıldı');
+    }
+    if (!fs.existsSync(KOLILER_FILE)) {
+      writeFile(KOLILER_FILE, defaultKoliler);
+      console.log('Default koliler dosyaya yazıldı');
+    }
+    if (!fs.existsSync(URUNLER_FILE)) {
+      writeFile(URUNLER_FILE, defaultUrunler);
+      console.log('Default ürünler dosyaya yazıldı');
+    }
+  } catch (error) {
+    console.log('Vercel başlangıç verileri yazılırken hata:', error.message);
   }
 }
 
@@ -116,13 +138,10 @@ const defaultKullanicilar = [
 // Veritabanı sınıfları
 class UrunDB {
   constructor() {
-    // Vercel'de memory-based, local'de file-based
-    if (process.env.VERCEL) {
-      this.data = [...defaultUrunler];
-    } else {
-      this.data = readFile(URUNLER_FILE, defaultUrunler);
-    }
+    // Hem Vercel'de hem local'de file-based
+    this.data = readFile(URUNLER_FILE, defaultUrunler);
     this.nextId = Math.max(...this.data.map(u => u.id), 0) + 1;
+    console.log('UrunDB constructor - Vercel:', process.env.VERCEL ? 'Evet' : 'Hayır', 'Data length:', this.data.length);
   }
 
   getAll() {
@@ -170,22 +189,17 @@ class UrunDB {
   }
 
   save() {
-    // Vercel'de dosya yazma işlemini atla
-    if (!process.env.VERCEL) {
-      writeFile(URUNLER_FILE, this.data);
-    }
+    // Hem Vercel'de hem local'de dosya yaz
+    writeFile(URUNLER_FILE, this.data);
   }
 }
 
 class KoliDB {
   constructor() {
-    // Vercel'de memory-based, local'de file-based
-    if (process.env.VERCEL) {
-      this.data = [...defaultKoliler];
-    } else {
-      this.data = readFile(KOLILER_FILE, defaultKoliler);
-    }
+    // Hem Vercel'de hem local'de file-based
+    this.data = readFile(KOLILER_FILE, defaultKoliler);
     this.nextId = Math.max(...this.data.map(k => k.id), 0) + 1;
+    console.log('KoliDB constructor - Vercel:', process.env.VERCEL ? 'Evet' : 'Hayır', 'Data length:', this.data.length);
   }
 
   getAll() {
@@ -234,21 +248,15 @@ class KoliDB {
   }
 
   save() {
-    // Vercel'de dosya yazma işlemini atla
-    if (!process.env.VERCEL) {
-      writeFile(KOLILER_FILE, this.data);
-    }
+    // Hem Vercel'de hem local'de dosya yaz
+    writeFile(KOLILER_FILE, this.data);
   }
 }
 
 class AktiviteDB {
   constructor() {
-    // Vercel'de memory-based, local'de file-based
-    if (process.env.VERCEL) {
-      this.data = [];
-    } else {
-      this.data = readFile(AKTIVITELER_FILE, []);
-    }
+    // Hem Vercel'de hem local'de file-based
+    this.data = readFile(AKTIVITELER_FILE, []);
     this.nextId = Math.max(...this.data.map(a => a.id), 0) + 1;
   }
 
@@ -268,21 +276,15 @@ class AktiviteDB {
   }
 
   save() {
-    // Vercel'de dosya yazma işlemini atla
-    if (!process.env.VERCEL) {
-      writeFile(AKTIVITELER_FILE, this.data);
-    }
+    // Hem Vercel'de hem local'de dosya yaz
+    writeFile(AKTIVITELER_FILE, this.data);
   }
 }
 
 class TransferDB {
   constructor() {
-    // Vercel'de memory-based, local'de file-based
-    if (process.env.VERCEL) {
-      this.data = [];
-    } else {
-      this.data = readFile(TRANSFER_FILE, []);
-    }
+    // Hem Vercel'de hem local'de file-based
+    this.data = readFile(TRANSFER_FILE, []);
     this.nextId = Math.max(...this.data.map(t => t.id), 0) + 1;
   }
 
@@ -302,21 +304,15 @@ class TransferDB {
   }
 
   save() {
-    // Vercel'de dosya yazma işlemini atla
-    if (!process.env.VERCEL) {
-      writeFile(TRANSFER_FILE, this.data);
-    }
+    // Hem Vercel'de hem local'de dosya yaz
+    writeFile(TRANSFER_FILE, this.data);
   }
 }
 
 class ToplamaDB {
   constructor() {
-    // Vercel'de memory-based, local'de file-based
-    if (process.env.VERCEL) {
-      this.data = [];
-    } else {
-      this.data = readFile(TOPLAMA_FILE, []);
-    }
+    // Hem Vercel'de hem local'de file-based
+    this.data = readFile(TOPLAMA_FILE, []);
     this.nextId = Math.max(...this.data.map(t => t.id), 0) + 1;
   }
 
@@ -346,22 +342,17 @@ class ToplamaDB {
   }
 
   save() {
-    // Vercel'de dosya yazma işlemini atla
-    if (!process.env.VERCEL) {
-      writeFile(TOPLAMA_FILE, this.data);
-    }
+    // Hem Vercel'de hem local'de dosya yaz
+    writeFile(TOPLAMA_FILE, this.data);
   }
 }
 
 class KullaniciDB {
   constructor() {
-    // Vercel'de memory-based, local'de file-based
-    if (process.env.VERCEL) {
-      this.data = [...defaultKullanicilar];
-    } else {
-      this.data = readFile(KULLANICILAR_FILE, defaultKullanicilar);
-    }
+    // Hem Vercel'de hem local'de file-based
+    this.data = readFile(KULLANICILAR_FILE, defaultKullanicilar);
     this.nextId = Math.max(...this.data.map(k => k.id), 0) + 1;
+    console.log('KullaniciDB constructor - Vercel:', process.env.VERCEL ? 'Evet' : 'Hayır', 'Data length:', this.data.length);
   }
 
   getAll() {
@@ -420,10 +411,8 @@ class KullaniciDB {
   }
 
   save() {
-    // Vercel'de dosya yazma işlemini atla
-    if (!process.env.VERCEL) {
-      writeFile(KULLANICILAR_FILE, this.data);
-    }
+    // Hem Vercel'de hem local'de dosya yaz
+    writeFile(KULLANICILAR_FILE, this.data);
   }
 }
 
