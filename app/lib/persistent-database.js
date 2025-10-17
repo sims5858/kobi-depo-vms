@@ -27,14 +27,7 @@ try {
     writeFile(KULLANICILAR_FILE, defaultKullanicilar);
     console.log('Default kullanıcılar dosyaya yazıldı');
   }
-  if (!fs.existsSync(KOLILER_FILE)) {
-    writeFile(KOLILER_FILE, defaultKoliler);
-    console.log('Default koliler dosyaya yazıldı');
-  }
-  if (!fs.existsSync(URUNLER_FILE)) {
-    writeFile(URUNLER_FILE, defaultUrunler);
-    console.log('Default ürünler dosyaya yazıldı');
-  }
+  // Ürün ve koli dosyaları için default veri yazma - mevcut veriler korunmalı
 } catch (error) {
   console.log('Başlangıç verileri yazılırken hata:', error.message);
 }
@@ -125,7 +118,7 @@ const defaultKullanicilar = [
 class UrunDB {
   constructor() {
     // Hem Vercel'de hem local'de file-based
-    this.data = readFile(URUNLER_FILE, defaultUrunler);
+    this.data = readFile(URUNLER_FILE, []); // Default veriler yerine boş array
     this.nextId = Math.max(...this.data.map(u => u.id), 0) + 1;
     console.log('UrunDB constructor - Vercel:', process.env.VERCEL ? 'Evet' : 'Hayır', 'Data length:', this.data.length);
   }
@@ -183,7 +176,7 @@ class UrunDB {
 class KoliDB {
   constructor() {
     // Hem Vercel'de hem local'de file-based
-    this.data = readFile(KOLILER_FILE, defaultKoliler);
+    this.data = readFile(KOLILER_FILE, []); // Default veriler yerine boş array
     this.nextId = Math.max(...this.data.map(k => k.id), 0) + 1;
     console.log('KoliDB constructor - Vercel:', process.env.VERCEL ? 'Evet' : 'Hayır', 'Data length:', this.data.length);
   }
@@ -336,7 +329,7 @@ class ToplamaDB {
 class KullaniciDB {
   constructor() {
     // Hem Vercel'de hem local'de file-based
-    this.data = readFile(KULLANICILAR_FILE, defaultKullanicilar);
+    this.data = readFile(KULLANICILAR_FILE, []); // Default veriler yerine boş array
     this.nextId = Math.max(...this.data.map(k => k.id), 0) + 1;
     console.log('KullaniciDB constructor - Vercel:', process.env.VERCEL ? 'Evet' : 'Hayır', 'Data length:', this.data.length);
   }
