@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { urunDB, koliDB, aktiviteDB } from '../../lib/kv-database.js';
+import { urunDB, koliDB, aktiviteDB } from '../../lib/persistent-database.js';
 
 export async function GET() {
   try {
-    const urunler = await urunDB.getAll();
+    const urunler = urunDB.getAll();
     console.log('=== ÜRÜN LİSTESİ API ===');
     console.log('Toplam ürün sayısı:', urunler.length);
     console.log('Ürünler:', urunler);
@@ -45,7 +45,7 @@ export async function POST(request) {
 
     // Aynı barkod + koli kombinasyonu var mı kontrol et
     // Aynı barkod farklı kolilerde olabilir, ama aynı barkod + aynı koli olamaz
-    const urunler = await urunDB.getAll();
+    const urunler = urunDB.getAll();
     const mevcutUrun = urunler.find(u => 
       u.barkod === yeniUrun.barkod && (u.koli === yeniUrun.koli || u.birim === yeniUrun.koli)
     );
@@ -57,10 +57,10 @@ export async function POST(request) {
     }
 
     // Ürünü ekle
-    const eklenenUrun = await urunDB.add(yeniUrun);
+    const eklenenUrun = urunDB.add(yeniUrun);
 
     // Aktivite kaydet
-    await aktiviteDB.add({
+    aktiviteDB.add({
       mesaj: 'Yeni ürün eklendi',
       detay: `${yeniUrun.urun_adi} (${yeniUrun.barkod}) eklendi`,
       tip: 'urun_ekleme'
@@ -92,7 +92,7 @@ export async function PUT(request) {
       );
     }
 
-    const guncellenenUrun = await urunDB.update(id, guncelUrun);
+    const guncellenenUrun = urunDB.update(id, guncelUrun);
 
     if (!guncellenenUrun) {
       return NextResponse.json(
@@ -102,7 +102,7 @@ export async function PUT(request) {
     }
 
     // Aktivite kaydet
-    await aktiviteDB.add({
+    aktiviteDB.add({
       mesaj: 'Ürün güncellendi',
       detay: `${guncellenenUrun.urun_adi} (${guncellenenUrun.barkod}) güncellendi`,
       tip: 'urun_guncelleme'
@@ -139,7 +139,7 @@ export async function DELETE(request) {
     console.log('Silinecek ürün ID:', id);
     
     // Ürün var mı kontrol et
-    const urun = await urunDB.getById(parseInt(id));
+    const urun = urunDB.getById(parseInt(id));
     if (!urun) {
       return NextResponse.json(
         { error: 'Ürün bulunamadı' },
@@ -148,11 +148,11 @@ export async function DELETE(request) {
     }
     
     // Ürün sil
-    const silinenUrun = await urunDB.delete(parseInt(id));
+    const silinenUrun = urunDB.delete(parseInt(id));
     
     if (silinenUrun) {
       // Aktivite kaydet
-      await aktiviteDB.add({
+      aktiviteDB.add({
         mesaj: 'Ürün silindi',
         detay: `${urun.urun_adi} (${urun.barkod}) silindi`,
         tip: 'urun_silme'
