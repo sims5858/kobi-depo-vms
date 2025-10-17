@@ -268,14 +268,26 @@ const KoliYonetimi = () => {
 
   const handleKoliClick = async (koliNo) => {
     try {
+      console.log('=== KOLI URUNLERI YUKLENIYOR ===');
+      console.log('Koli numarası:', koliNo);
+      
       // Bu koli numarasına sahip ürünleri getir
       const response = await fetch('/api/urun');
       if (response.ok) {
         const urunler = await response.json();
-        // Sadece stoklu ürünleri göster (stok_miktari > 0)
-        const koliUrunleri = urunler.filter(urun => 
-          urun.birim === koliNo && urun.stok_miktari > 0
-        );
+        console.log('Toplam ürün sayısı:', urunler.length);
+        
+        // Hem koli hem birim field'larından kontrol et ve sadece stoklu ürünleri göster
+        const koliUrunleri = urunler.filter(urun => {
+          const koliMatch = (urun.koli === koliNo) || (urun.birim === koliNo);
+          const stoklu = urun.stok_miktari > 0;
+          
+          if (koliMatch && stoklu) {
+            console.log('Koli ürünü bulundu:', urun.urun_adi, 'Stok:', urun.stok_miktari, 'Koli:', urun.koli || urun.birim);
+          }
+          
+          return koliMatch && stoklu;
+        });
         
         setSelectedKoliNo(koliNo);
         setSelectedKoliUrunleri(koliUrunleri);
@@ -283,6 +295,7 @@ const KoliYonetimi = () => {
         setShowKoliUrunModal(true);
         
         console.log(`${koliNo} kolisinde ${koliUrunleri.length} stoklu ürün bulundu`);
+        console.log('Koli ürünleri:', koliUrunleri);
       }
     } catch (error) {
       console.error('Koli ürünleri yüklenirken hata:', error);

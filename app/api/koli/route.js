@@ -12,11 +12,40 @@ export async function GET() {
     console.log('Koli DB getAll() sonucu:', koliListesi);
     console.log('Koli sayısı:', koliListesi.length);
     
-    if (koliListesi.length > 0) {
-      console.log('İlk 3 koli:', koliListesi.slice(0, 3));
+    // Ürün verilerini al
+    const urunler = urunDB.getAll();
+    console.log('Toplam ürün sayısı:', urunler.length);
+    
+    // Her koli için istatistikleri hesapla
+    const koliListesiWithStats = koliListesi.map(koli => {
+      // Bu koliye ait ürünleri bul (hem koli hem birim field'larından)
+      const koliUrunleri = urunler.filter(urun => {
+        const koliMatch = (urun.koli === koli.koli_no) || (urun.birim === koli.koli_no);
+        const stoklu = urun.stok_miktari > 0; // Sadece stoklu ürünler
+        return koliMatch && stoklu;
+      });
+      
+      // İstatistikleri hesapla
+      const urunSayisi = koliUrunleri.length;
+      const toplamAdet = koliUrunleri.reduce((toplam, urun) => toplam + (urun.stok_miktari || 0), 0);
+      const dolulukOrani = koli.kapasite > 0 ? (toplamAdet / koli.kapasite) * 100 : 0;
+      
+      console.log(`Koli ${koli.koli_no}: ${urunSayisi} ürün, ${toplamAdet} adet, %${dolulukOrani.toFixed(1)} doluluk`);
+      
+      return {
+        ...koli,
+        urun_sayisi: urunSayisi,
+        toplam_adet: toplamAdet,
+        doluluk_orani: Math.round(dolulukOrani * 10) / 10, // 1 ondalık basamak
+        son_guncelleme: new Date().toISOString().split('T')[0]
+      };
+    });
+    
+    if (koliListesiWithStats.length > 0) {
+      console.log('İlk 3 koli (istatistiklerle):', koliListesiWithStats.slice(0, 3));
     }
     
-    return NextResponse.json(koliListesi);
+    return NextResponse.json(koliListesiWithStats);
   } catch (error) {
     console.error('Koli listesi hatası:', error);
     return NextResponse.json(
