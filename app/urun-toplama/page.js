@@ -334,14 +334,7 @@ const UrunToplama = () => {
         tarih: typeof window !== 'undefined' ? new Date().toLocaleString('tr-TR') : ''
       };
 
-      // Listeye ekle
-      setToplamaListesi(prevList => {
-        const newList = [...prevList, yeniUrun];
-        saveToplamaListesi(newList);
-        return newList;
-      });
-
-      // Anında toplama işlemini gerçekleştir
+      // Anında toplama işlemini gerçekleştir (bu işlem hem listeye ekler hem stok günceller)
       performInstantToplama([yeniUrun]);
 
       toast.success(`${urun.urun_adi} toplama listesine eklendi ve işlem tamamlandı (Kalan stok: ${urun.stok_miktari - toplamCikisAdet})`);
@@ -484,6 +477,13 @@ const UrunToplama = () => {
       if (response.ok) {
         const result = await response.json();
         console.log('Anında toplama işlemi sonucu:', result);
+        
+        // Toplama listesini güncelle
+        setToplamaListesi(prevList => {
+          const newList = [...prevList, ...urunler];
+          saveToplamaListesi(newList);
+          return newList;
+        });
         
         // Stok güncellemelerini göster
         if (result.stok_guncellemeleri && result.stok_guncellemeleri.length > 0) {
