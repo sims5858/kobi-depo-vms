@@ -1,10 +1,10 @@
-// MongoDB veritabanını başlat - default verileri oluştur
+// Supabase veritabanını başlat - default verileri oluştur
 import { NextResponse } from 'next/server';
 import { kullaniciDB, urunDB, koliDB, aktiviteDB } from '../../lib/supabase-database.js';
 
 export async function POST() {
   try {
-    console.log('=== MONGODB DATABASE INITIALIZATION ===');
+    console.log('=== SUPABASE DATABASE INITIALIZATION ===');
     
     // Default kullanıcıları oluştur
     const defaultKullanicilar = [
@@ -30,7 +30,7 @@ export async function POST() {
     // Aktivite kaydet
     await aktiviteDB.add({
       mesaj: 'Veritabanı başlatıldı',
-      detay: 'MongoDB Atlas bağlantısı kuruldu ve default veriler oluşturuldu',
+      detay: 'Supabase PostgreSQL bağlantısı kuruldu ve default veriler oluşturuldu',
       tip: 'system_init'
     });
     
