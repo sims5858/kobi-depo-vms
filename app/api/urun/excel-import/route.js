@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
-import { urunDB, koliDB, aktiviteDB } from '../../../lib/persistent-database.js';
+import { urunDB, koliDB, aktiviteDB } from '../../../lib/supabase-database.js';
 
 // Helper function to find column value with multiple possible names
 function findColumnValue(row, possibleNames) {
@@ -89,9 +89,7 @@ export async function POST(request) {
 
         // Aynı barkod + koli kombinasyonu var mı kontrol et
         // Aynı barkod farklı kolilerde olabilir, ama aynı barkod + aynı koli olamaz
-        const mevcutUrun = urunDB.getAll().find(u => 
-          u.barkod === yeniUrun.barkod && u.birim === yeniUrun.birim
-        );
+        const mevcutUrun = await urunDB.getByBarkodAndKoli(yeniUrun.barkod, yeniUrun.birim);
         if (mevcutUrun) {
           console.log('Barkod + Koli çakışması:', yeniUrun.barkod, 'koli:', yeniUrun.birim);
           hataSayisi++;
@@ -99,7 +97,7 @@ export async function POST(request) {
         }
 
         // Ürünü ekle
-        const eklenenUrun = urunDB.add(yeniUrun);
+        const eklenenUrun = await urunDB.add(yeniUrun);
         eklenenUrunler.push(eklenenUrun);
         console.log('Ürün başarıyla eklendi:', eklenenUrun);
 
@@ -111,7 +109,7 @@ export async function POST(request) {
 
     // Aktivite kaydet
     if (eklenenUrunler.length > 0) {
-      aktiviteDB.add({
+      await aktiviteDB.add({
         mesaj: 'Excel dosyasından ürün import edildi',
         detay: `${eklenenUrunler.length} ürün başarıyla eklendi`,
         tip: 'excel_import'

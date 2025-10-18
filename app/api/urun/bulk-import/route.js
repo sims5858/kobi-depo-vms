@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { urunDB, koliDB, aktiviteDB } from '../../../lib/persistent-database.js';
+import { urunDB, koliDB, aktiviteDB } from '../../../lib/supabase-database.js';
 
 export async function POST(request) {
   try {

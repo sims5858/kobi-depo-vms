@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { toplamaDB, urunDB, aktiviteDB } from '../../../lib/persistent-database.js';
+import { toplamaDB, urunDB, aktiviteDB } from '../../../lib/supabase-database.js';
 
 export async function DELETE(request, { params }) {
   try {
