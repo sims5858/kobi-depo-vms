@@ -200,12 +200,25 @@ const UrunToplama = () => {
     console.log('Mevcut aşama:', scanningStep);
     
     if (scanningStep === 'koli') {
-      // İlk aşama: Koli numarası
-      console.log('Koli numarası olarak algılandı:', barkod);
-      setActiveKoli(barkod);
-      setScanningStep('urun');
-      toast.info(`Koli numarası: ${barkod} - Şimdi ürün barkodunu okutun`);
-      setInput(''); // Input'u temizle
+      // İlk aşama: Koli numarası kontrolü
+      console.log('Koli aşamasında barkod okundu:', barkod);
+      
+      // Koli numarası olup olmadığını kontrol et
+      const koliVar = koliListesi.some(koli => koli.koli_no === barkod);
+      
+      if (koliVar) {
+        // Geçerli koli numarası
+        console.log('Geçerli koli numarası:', barkod);
+        setActiveKoli(barkod);
+        setScanningStep('urun');
+        toast.success(`✅ Koli numarası: ${barkod} - Şimdi ürün barkodunu okutun`);
+        setInput(''); // Input'u temizle
+      } else {
+        // Geçersiz koli numarası - ürün barkodu okutulmuş olabilir
+        console.log('Geçersiz koli numarası - ürün barkodu olabilir:', barkod);
+        toast.error(`❌ Bu koli numarası bulunamadı! Lütfen önce koli numarasını okutun.`);
+        setInput(''); // Input'u temizle
+      }
     } else if (scanningStep === 'urun') {
       // İkinci aşama: Ürün barkodu
       console.log('Ürün barkodu olarak algılandı:', barkod);
@@ -221,11 +234,19 @@ const UrunToplama = () => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (scanningStep === 'koli') {
-        // Manuel koli numarası girişi
-        setActiveKoli(input.trim());
-        setScanningStep('urun');
-        toast.info(`Koli numarası: ${input.trim()} - Şimdi ürün barkodunu girin`);
-        setInput('');
+        // Manuel koli numarası girişi - kontrol et
+        const koliNo = input.trim();
+        const koliVar = koliListesi.some(koli => koli.koli_no === koliNo);
+        
+        if (koliVar) {
+          setActiveKoli(koliNo);
+          setScanningStep('urun');
+          toast.success(`✅ Koli numarası: ${koliNo} - Şimdi ürün barkodunu girin`);
+          setInput('');
+        } else {
+          toast.error(`❌ Bu koli numarası bulunamadı! Lütfen geçerli bir koli numarası girin.`);
+          setInput('');
+        }
       } else {
         // Manuel ürün barkodu girişi
         handleBarkodArama();
@@ -573,10 +594,19 @@ const UrunToplama = () => {
                   />
                   <Button variant="primary" onClick={() => {
                     if (scanningStep === 'koli') {
-                      setActiveKoli(input.trim());
-                      setScanningStep('urun');
-                      toast.info(`Koli numarası: ${input.trim()} - Şimdi ürün barkodunu girin`);
-                      setInput('');
+                      // Koli numarası kontrolü
+                      const koliNo = input.trim();
+                      const koliVar = koliListesi.some(koli => koli.koli_no === koliNo);
+                      
+                      if (koliVar) {
+                        setActiveKoli(koliNo);
+                        setScanningStep('urun');
+                        toast.success(`✅ Koli numarası: ${koliNo} - Şimdi ürün barkodunu girin`);
+                        setInput('');
+                      } else {
+                        toast.error(`❌ Bu koli numarası bulunamadı! Lütfen geçerli bir koli numarası girin.`);
+                        setInput('');
+                      }
                     } else {
                       handleBarkodArama();
                       setScanningStep('koli');
@@ -605,10 +635,11 @@ const UrunToplama = () => {
 
               <Alert variant="success" className="small">
                 <strong>İki Aşamalı Barkod Okuma:</strong><br />
-                1. <strong>Koli Barkodu:</strong> İlk barkodu okutun (koli numarası)<br />
+                1. <strong>Koli Barkodu:</strong> İlk barkodu okutun (koli numarası) - Sadece geçerli koli numaraları kabul edilir!<br />
                 2. <strong>Ürün Barkodu:</strong> İkinci barkodu okutun (ürün barkodu)<br />
                 3. <strong>İşlem otomatik tamamlanır!</strong><br />
                 <br />
+                <strong>⚠️ Önemli:</strong> İlk aşamada ürün barkodu okutursanız hata alırsınız!<br />
                 <strong>Otomatik Tarama:</strong><br />
                 • Barkod okuyucu 8+ karakter girince otomatik algılanır<br />
                 • "Tarama Modu" yazısı görünür<br />
