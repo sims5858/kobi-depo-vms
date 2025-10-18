@@ -172,6 +172,20 @@ const UrunToplama = () => {
     
     setInput(value);
     
+    // Eğer ürün aşamasında ise ve yeni bir koli numarası yazılıyorsa, koli aşamasına geç
+    if (scanningStep === 'urun' && value.trim() !== '') {
+      // Yazılan değerin koli numarası olup olmadığını kontrol et
+      const koliVar = koliListesi.some(koli => koli.koli_no === value.trim());
+      if (koliVar) {
+        console.log('Yeni koli numarası algılandı, koli aşamasına geçiliyor:', value.trim());
+        setScanningStep('koli');
+        setActiveKoli(value.trim());
+        toast.success(`✅ Yeni koli seçildi: ${value.trim()}`);
+        setInput('');
+        return;
+      }
+    }
+    
     // Hızlı giriş algılama (barkod okuyucu)
     if (timeDiff < 50 && value.length > 0) {
       setIsScanning(true);
@@ -223,8 +237,8 @@ const UrunToplama = () => {
       // İkinci aşama: Ürün barkodu
       console.log('Ürün barkodu olarak algılandı:', barkod);
       handleBarkodArama(barkod);
-      // İşlem tamamlandıktan sonra tekrar koli aşamasına dön
-      setScanningStep('koli');
+      // İşlem tamamlandıktan sonra aynı koli ile devam et (koli aşamasına dönme)
+      // setScanningStep('koli'); // Bu satırı kaldırdık - aynı koli ile devam etsin
       setInput(''); // Input'u temizle
     }
   };
@@ -250,7 +264,8 @@ const UrunToplama = () => {
       } else {
         // Manuel ürün barkodu girişi
         handleBarkodArama();
-        setScanningStep('koli');
+        // Aynı koli ile devam et - koli aşamasına dönme
+        // setScanningStep('koli'); // Bu satırı kaldırdık - aynı koli ile devam etsin
         setInput('');
       }
     }
@@ -609,7 +624,8 @@ const UrunToplama = () => {
                       }
                     } else {
                       handleBarkodArama();
-                      setScanningStep('koli');
+                      // Aynı koli ile devam et - koli aşamasına dönme
+                      // setScanningStep('koli'); // Bu satırı kaldırdık - aynı koli ile devam etsin
                       setInput('');
                     }
                   }}>
@@ -637,14 +653,15 @@ const UrunToplama = () => {
                 <strong>İki Aşamalı Barkod Okuma:</strong><br />
                 1. <strong>Koli Barkodu:</strong> İlk barkodu okutun (koli numarası) - Sadece geçerli koli numaraları kabul edilir!<br />
                 2. <strong>Ürün Barkodu:</strong> İkinci barkodu okutun (ürün barkodu)<br />
-                3. <strong>İşlem otomatik tamamlanır!</strong><br />
+                3. <strong>Aynı koli ile devam edin!</strong> - Yeni koli için koli numarası yazın<br />
                 <br />
                 <strong>⚠️ Önemli:</strong> İlk aşamada ürün barkodu okutursanız hata alırsınız!<br />
+                <strong>🔄 Sürekli Kullanım:</strong> Aynı koli ile birden fazla ürün ekleyebilirsiniz!<br />
                 <strong>Otomatik Tarama:</strong><br />
                 • Barkod okuyucu 8+ karakter girince otomatik algılanır<br />
                 • "Tarama Modu" yazısı görünür<br />
                 • Manuel giriş için Enter tuşuna basın<br />
-                • <strong>Her işlem sonrası tekrar koli aşamasına döner</strong>
+                • <strong>Aynı koli ile devam eder - yeni koli için koli numarası yazın</strong>
               </Alert>
             </Card.Body>
           </Card>
