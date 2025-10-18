@@ -1,7 +1,6 @@
 // MongoDB veritabanını başlat - default verileri oluştur
 import { NextResponse } from 'next/server';
 import { kullaniciDB, urunDB, koliDB, aktiviteDB } from '../../lib/mongodb-database.js';
-import bcrypt from 'bcrypt';
 
 export async function POST() {
   try {
@@ -11,7 +10,7 @@ export async function POST() {
     const defaultKullanicilar = [
       {
         kullanici_adi: 'admin',
-        sifre: await bcrypt.hash('admin123', 10),
+        sifre: 'admin123', // Basit şifre kontrolü
         ad_soyad: 'Sistem Yöneticisi',
         email: 'admin@kobi.com',
         rol: 'admin',

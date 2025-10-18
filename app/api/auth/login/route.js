@@ -30,10 +30,9 @@ export async function POST(request) {
     // Eğer hiç kullanıcı yoksa default admin kullanıcısını oluştur
     if (kullanicilar.length === 0) {
       console.log('Hiç kullanıcı yok, default admin kullanıcısı oluşturuluyor...');
-      const bcrypt = await import('bcrypt');
       const defaultAdmin = {
         kullanici_adi: 'admin',
-        sifre: await bcrypt.hash('admin123', 10),
+        sifre: 'admin123', // Basit şifre kontrolü
         ad_soyad: 'Sistem Yöneticisi',
         email: 'admin@kobi.com',
         rol: 'admin',
@@ -64,10 +63,8 @@ export async function POST(request) {
       );
     }
 
-    // Şifre kontrolü (bcrypt ile)
-    const bcrypt = await import('bcrypt');
-    const sifreKontrol = await bcrypt.compare(sifre, user.sifre);
-    if (!sifreKontrol) {
+    // Şifre kontrolü (basit string karşılaştırma)
+    if (user.sifre !== sifre) {
       console.log('Şifre yanlış');
       return NextResponse.json(
         { success: false, error: 'Geçersiz kullanıcı adı veya şifre' },
