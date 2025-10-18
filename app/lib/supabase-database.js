@@ -1,8 +1,8 @@
 // Supabase veritabanı - PostgreSQL tabanlı kalıcı veri depolama
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://jfmtqhuxhbuohygcinqt.supabase.co'
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmbXRxaHV4aGJ1b2h5Z2NpbnF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1NjA1MDUsImV4cCI6MjA3NjEzNjUwNX0.5aunuT4k0LjVBw_BaljVJHCrxtF7yKlz09H7f-ppDkE'
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
