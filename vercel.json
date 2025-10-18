@@ -8,14 +8,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    }
-  ],
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build"
+  }
 }
