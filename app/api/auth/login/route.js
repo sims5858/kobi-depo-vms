@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { kullaniciDB } from '../../../lib/mongodb-database.js';
+import { kullaniciDB } from '../../../lib/supabase-database.js';
 
 export async function POST(request) {
   try {

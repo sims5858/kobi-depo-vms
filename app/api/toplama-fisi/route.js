@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { toplamaDB, urunDB, koliDB, aktiviteDB } from '../../lib/mongodb-database.js';
+import { toplamaDB, urunDB, koliDB, aktiviteDB } from '../../lib/supabase-database.js';
 
 export async function GET(request) {
   try {

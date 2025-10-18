@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { koliDB, urunDB, aktiviteDB } from '../../lib/mongodb-database.js';
+import { koliDB, urunDB, aktiviteDB } from '../../lib/supabase-database.js';
 
 // GET - Tüm kolileri listele
 export async function GET() {

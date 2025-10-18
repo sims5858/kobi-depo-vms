@@ -1,6 +1,6 @@
 // MongoDB veritabanını başlat - default verileri oluştur
 import { NextResponse } from 'next/server';
-import { kullaniciDB, urunDB, koliDB, aktiviteDB } from '../../lib/mongodb-database.js';
+import { kullaniciDB, urunDB, koliDB, aktiviteDB } from '../../lib/supabase-database.js';
 
 export async function POST() {
   try {
