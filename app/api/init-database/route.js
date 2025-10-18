@@ -10,7 +10,7 @@ export async function POST() {
     const defaultKullanicilar = [
       {
         kullanici_adi: 'admin',
-        sifre: 'admin123', // Basit şifre kontrolü
+        sifre: 'Lafuma1818.-', // Özel admin şifresi
         ad_soyad: 'Sistem Yöneticisi',
         email: 'admin@kobi.com',
         rol: 'admin',

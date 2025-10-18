@@ -32,7 +32,7 @@ export async function POST(request) {
       console.log('Hiç kullanıcı yok, default admin kullanıcısı oluşturuluyor...');
       const defaultAdmin = {
         kullanici_adi: 'admin',
-        sifre: 'admin123', // Basit şifre kontrolü
+        sifre: 'Lafuma1818.-', // Özel admin şifresi
         ad_soyad: 'Sistem Yöneticisi',
         email: 'admin@kobi.com',
         rol: 'admin',
